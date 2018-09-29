@@ -5,6 +5,10 @@ from django.http import HttpResponseRedirect
 
 from server.models import Document
 from server.forms import DocumentForm
+import os
+
+from django.conf import settings
+from django.http import HttpResponse
 
 
 def list(request):
@@ -21,8 +25,19 @@ def list(request):
         form = DocumentForm() # A empty, unbound form
 
     # Load documents for the list page
-    # documents = Document.objects.all()
+    documents = Document.objects.all()
 
     # Render list page with the documents and the form
     return render(request, 'upload/upload.html',
-        {'form': form})
+        {'form': form,'documents' : documents})
+
+
+def download(request, path):
+    file_path = os.path.join(settings.MEDIA_ROOT, path)
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            return response
+    raise Http404
+

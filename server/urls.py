@@ -5,8 +5,9 @@ from django.conf import settings
 
 from . import views
 
-urlpatterns = [path('upload',views.list,name='upload')]
+urlpatterns = [path('upload',views.list, name='upload'),
+				url(r'^server/media/(?P<path>.+)$',views.download,name='download')	
+					]
 
 if settings.DEBUG:
 	urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
-
