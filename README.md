@@ -1,2 +1,3 @@
 # spc
-All the code and documentation written for SSL project.
+backend - name of the project
+server - name of the application
