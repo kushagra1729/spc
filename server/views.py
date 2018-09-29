@@ -3,8 +3,8 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect
 # from django.core.urlresolvers import reverse
 
-from server.models import Document
-from server.forms import DocumentForm
+from server.models import Document,Reg
+from server.forms import DocumentForm,RegistrationForm
 import os
 
 from django.conf import settings
@@ -41,3 +41,23 @@ def download(request, path):
             return response
     raise Http404
 
+def register(request):
+    if request.method == 'POST':
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            # newdoc = Document(docfile = request.FILES['docfile'])
+            form.save()
+            print(request.POST['username'])
+            os.mkdir(settings.MEDIA_ROOT+'/'+request.POST['username'])
+
+            # Redirect to the document list after POST
+            return redirect('upload') 
+    else:
+        form = RegistrationForm() # A empty, unbound form
+
+    # Load documents for the list page
+    
+
+    # Render list page with the documents and the form
+    return render(request, 'register/register.html',
+        {'form_reg': form})

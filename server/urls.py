@@ -6,7 +6,8 @@ from django.conf import settings
 from . import views
 
 urlpatterns = [path('upload',views.list, name='upload'),
-				url(r'^server/media/(?P<path>.+)$',views.download,name='download')	
+				url(r'^server/media/(?P<path>.+)$',views.download,name='download'),
+				    url(r'^register/$',views.register,name='register')	
 					]
 
 if settings.DEBUG:
