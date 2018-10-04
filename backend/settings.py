@@ -128,3 +128,4 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 ALLOWED_HOSTS = ['127.0.0.1']
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
+DEFAULT_FILE_STORAGE = 'db_file_storage.storage.DatabaseFileStorage'

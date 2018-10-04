@@ -13,7 +13,7 @@
     {% if documents %}
         <ul>
         {% for document in documents %}
-            <li><a href="server{{ document.docfile.url }}">{{ document.docfile.name }}</a></li>
+            <li><a href="{% url "db_file_storage.download_file" %}?name={{ document.docfile }}">{{ document.docfile.name }}</a></li>
         {% endfor %}
         </ul>
     {% else %}
