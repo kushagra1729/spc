@@ -5,12 +5,13 @@ from django.http import HttpResponseRedirect
 
 from server.models import Document,Reg
 from server.forms import DocumentForm,RegistrationForm
+from django.views.decorators.csrf import csrf_exempt
 import os
 
 from django.conf import settings
 from django.http import HttpResponse
 
-
+@csrf_exempt
 def list(request):
     # Handle file upload
     if request.method == 'POST':
