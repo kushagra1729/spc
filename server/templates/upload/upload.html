@@ -69,7 +69,7 @@
         <ul>
         {% for document in documents %}
             <li>
-           <!--<a href="{% url "db_file_storage.get_file" %}?name={{ document.docfile }}">{{ document.docfile.name }}</a>--> 
+           <a href="{% url "db_file_storage.get_file" %}?name={{ document.docfile }}">{{ document.docfile.name }}</a>
 <!-- Trigger/Open The Modal -->
 <button id="myBtn{{ document.docfile.name }}">{{ document.docfile.name }}</button>
 
@@ -90,11 +90,11 @@
         </ul>
     {% else %}
         <p>No documents.</p>
-    {% endif %}
+
     
     <!-- <p> HELLO </p> -->
         <!-- Upload form. Note enctype attribute! -->
-        <form  method="post" enctype="multipart/form-data">
+        <f{% endif %}orm  method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <!-- <p>{{ form.non_field_errors }}</p> -->
             <!-- <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p> -->
@@ -144,9 +144,9 @@ span{{ forloop.counter }}.onclick = function() {
         
         // When the user clicks anywhere outside of the modal, close it
 window.onclick = function(event) {
-    if (false 
+    if (false
     {% if documents %}
-       
+
         {% for document in documents %}
         || event.target == modal{{ forloop.counter }}
         {% endfor %}
