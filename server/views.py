@@ -17,7 +17,8 @@ def list(request):
     if request.method == 'POST':
         form = DocumentForm(request.POST, request.FILES)
         if form.is_valid():
-            # newdoc = Document(docfile = request.FILES['docfile'])
+            curruser = form.save(commit=False)
+            curruser.username=request.user
             form.save()
 
             # Redirect to the document list after POST
@@ -26,7 +27,7 @@ def list(request):
         form = DocumentForm() # A empty, unbound form
 
     # Load documents for the list page
-    documents = Document.objects.all()
+    documents = Document.objects.all().filter(username=request.user)
 
     # Render list page with the documents and the form
     return render(request, 'upload/upload.html',
