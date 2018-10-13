@@ -125,8 +125,9 @@ MEDIA_URL = '/media/'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+
 ALLOWED_HOSTS = ['127.0.0.1']
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'home'
+LOGIN_REDIRECT_URL = '/server/upload'
+LOGOUT_REDIRECT_URL = '/accounts/login'
 DEFAULT_FILE_STORAGE = 'db_file_storage.storage.DatabaseFileStorage'
 # CSRF_COOKIE_SECURE = False

@@ -17,7 +17,8 @@ def list(request,folder_path):
     if request.method == 'POST':
         form = DocumentForm(request.POST, request.FILES)
         if form.is_valid():
-            # newdoc = Document(docfile = request.FILES['docfile'])
+            curruser = form.save(commit=False)
+            curruser.username=request.user
             form.save()
 
             # Redirect to the document list after POST
@@ -29,9 +30,11 @@ def list(request,folder_path):
     # Load documents for the list page
     # documents=[]
     # documents = Document.objects.all()
-    documents=Document.objects.filter(base_folder=folder_path)
-    folders=Folder.objects.filter(base_folder=folder_path)
+    documents=Document.objects.filter(base_folder=folder_path).filter(username=request.user)
+    folders=Folder.objects.filter(base_folder=folder_path).filter(username=request.user)
     # folders=Folder.objects.all()
+    # documents = Document.objects.all().filter(username=request.user)
+    # f903cdfd461b869ba2289356252f45ec5f67e616
 
     # Render list page with the documents and the form
     return render(request, 'upload/upload.html',
