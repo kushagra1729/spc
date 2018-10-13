@@ -64,7 +64,7 @@
     
     <body>
     <!-- List of uploaded documents -->
-    
+    <p> FILES </p>
     {% if documents %}
         <ul>
         {% for document in documents %}
@@ -91,6 +91,27 @@
     {% else %}
         <p>No documents.</p>
     {% endif %}
+
+    
+    <p> FOLDERS </p>
+
+    {% if folders %}
+        <ul>
+        {% for folder in folders %}
+            <li>
+           <!--<a href="{% url "db_file_storage.get_file" %}?name={{ document.docfile }}">{{ document.docfile.name }}</a>--> 
+<!-- Trigger/Open The Modal -->
+<a href="/server/upload/{{ dir }}{{ folder.name }}/">
+<button id="myBtn{{ folder.name }}">{{ folder.name }}</button>
+</a>
+      </li>      
+            
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No folders.</p>
+    {% endif %}
+
     
     <!-- <p> HELLO </p> -->
         <!-- Upload form. Note enctype attribute! -->
@@ -138,7 +159,26 @@ span{{ forloop.counter }}.onclick = function() {
     
     {% endif %}
         
-        
+<!-- 
+    {% if folders %}
+       
+        {% for folder in folders %}
+            <script>  
+// Get the button that opens the modal
+var btn{{ folder.name }} = document.getElementById("myBtn{{ folder.name }}");
+
+// When the user clicks on the button, open the modal 
+btn{{ folder.name }}.onclick = function() {
+    
+}
+
+     </script>       
+            
+        {% endfor %}
+       
+    
+    {% endif %}
+ -->
         
         <script>
         
@@ -171,5 +211,3 @@ window.onclick = function(event) {
         
     </body>
 </html> 
-
-<!-- action="{% url 'upload' %}" -->

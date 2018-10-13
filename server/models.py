@@ -9,7 +9,12 @@ class DB_File(models.Model):
 
 class Document(models.Model):
 	description = models.CharField(max_length = 255, blank = True)
+	base_folder = models.CharField(max_length = 255, blank = True)
 	docfile = models.FileField(upload_to='server.DB_File/bytes/filename/mimetype')
+
+class Folder(models.Model):
+	base_folder = models.CharField(max_length = 255, blank = True)
+	name = models.CharField(max_length = 255, blank = True)
 
 class Reg(models.Model):
 	username = models.CharField(max_length = 255, blank = False)
