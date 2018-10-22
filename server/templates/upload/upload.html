@@ -116,7 +116,7 @@
     
     <!-- <p> HELLO </p> -->
         <!-- Upload form. Note enctype attribute! -->
-        <f{% endif %}orm  method="post" enctype="multipart/form-data">
+        <form  method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <!-- <p>{{ form.non_field_errors }}</p> -->
             <!-- <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p> -->
@@ -127,8 +127,7 @@
             </p> -->
             <button type = "submit">Upload</button>
         </form>
-        
-        
+        <a href="/accounts/logout" class="button">Logout</a>
         {% if documents %}
        
         {% for document in documents %}
