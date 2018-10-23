@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 
 from server.models import Document,Reg,Folder
 from server.forms import DocumentForm,RegistrationForm,FolderForm
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 import os
 
@@ -12,6 +13,7 @@ from django.conf import settings
 from django.http import HttpResponse
 
 @csrf_exempt
+@login_required
 def list(request,folder_path):
     # Handle file upload
     if request.method == 'POST':
@@ -32,7 +34,7 @@ def list(request,folder_path):
     # documents = Document.objects.all()
     documents=Document.objects.filter(base_folder=folder_path).filter(username=request.user)
     folders=Folder.objects.filter(base_folder=folder_path).filter(username=request.user)
-    # folders=Folder.objects.all()
+    # folders=Folder.objects.filter(username=request.user)
     # documents = Document.objects.all().filter(username=request.user)
     # f903cdfd461b869ba2289356252f45ec5f67e616
 
@@ -41,12 +43,17 @@ def list(request,folder_path):
         {'form': form,'documents' : documents, 'folders':folders, 'dir':folder_path})
 
 @csrf_exempt
+@login_required
 def add_folder(request):
     # Handle file upload
     if request.method == 'POST':
         form = FolderForm(request.POST)
         if form.is_valid():
             # newdoc = Document(docfile = request.FILES['docfile'])
+            curruser = form.save(commit=False)
+            curruser.username=request.user
+            # form.save()
+
             form.save()
 
             # Redirect to the document list after POST
@@ -61,6 +68,7 @@ def add_folder(request):
     return render(request, 'folder_add/folder_add.html',
         {'form': form,'documents' : documents})
 
+@login_required
 def download(request, path):
     file_path = os.path.join(settings.MEDIA_ROOT, path)
     if os.path.exists(file_path):
