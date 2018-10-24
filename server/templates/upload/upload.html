@@ -69,7 +69,7 @@
         <ul>
         {% for document in documents %}
             <li>
-           <a href="{% url "db_file_storage.get_file" %}?name={{ document.docfile }}">{{ document.docfile.name }}</a>
+           <a href="{% url "db_file_storage.download_file" %}?name={{ document.docfile }}">Download</a>
 <!-- Trigger/Open The Modal -->
 <button id="myBtn{{ document.docfile.name }}">{{ document.docfile.name }}</button>
 
@@ -127,12 +127,17 @@
             </p> -->
             <button type = "submit">Upload</button>
         </form>
-        
-        
+        <a href="/accounts/logout" class="button">Logout</a>
         {% if documents %}
        
         {% for document in documents %}
             <script>  
+
+    var path = document.getElementById("myBtn{{ document.docfile.name }}")
+    var name = "{{ document.docfile.name }}".match(/([^\/]*)\/*$/)[1]
+    document.getElementById("myBtn{{ document.docfile.name }}").innerHTML = name;
+
+
         // Get the modal
 var modal{{ forloop.counter }} = document.getElementById('myModal{{ document.docfile.name }}');
 

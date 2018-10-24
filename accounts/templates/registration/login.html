@@ -4,8 +4,6 @@
 
 
 
-<h1>saadcasddf</h1>
-
 {% if form.errors %}
 <p>Your username and password didn't match. Please try again.</p>
 {% endif %}
@@ -34,7 +32,10 @@
 
 <input type="submit" value="login">
 <input type="hidden" name="next" value="{{ next }}">
+
 </form>
+
+<a href="/accounts/signup" class="button"><button>Signup</button></a>
 
 {# Assumes you setup the password_reset view in your URLconf #}
 <!--<p><a href="{% url 'accounts:password_reset' %}">Lost password?</a></p>-->

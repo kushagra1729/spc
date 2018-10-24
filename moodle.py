@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import requests
 import getpass
 import sys
@@ -17,6 +18,13 @@ def login_with_input():
 	b = getpass.getpass("Password : ")
 	return login(a,b)
 
+def logout_from_server():
+	file_name = "/home/kritin/Desktop/new_int.p"
+	fileObject = open(file_name,'wb')
+	d = {}
+	pickle.dump(d,fileObject)
+	fileObject.close()
+
 def login(a,b):
 	global client
 	client = requests.session()
@@ -35,7 +43,7 @@ def login(a,b):
 	if (r.status_code != 200):
 		return False
 	else :
-		file_name = "new_int.p"
+		file_name = "/home/kritin/Desktop/new_int.p"
 		fileObject = open(file_name,'wb')
 		d = {'Username_in_pickle' : a, 'Password_in_pickle' : b}
 		pickle.dump(d,fileObject)
@@ -48,7 +56,7 @@ def login(a,b):
 # Always mantain folder_name ending with /
 
 def login_for_reading():
-	file_name = "new_int.p"
+	file_name = "/home/kritin/Desktop/new_int.p"
 	fileObject = open(file_name,'rb')
 	c = pickle.load(fileObject)
 	# print(c['Username_in_pickle'],c['Password_in_pickle'])
@@ -126,6 +134,24 @@ def upload_folder(folder_name):
 	else :
 		print("You are not logged in your account")
 	
+def edit_password_with_input():
+	a = input("Username : ")
+	b = getpass.getpass("Enter Old Password : ")
+	c = getpass.getpass("Enter New passowrd : ")
+def edit_password():
+	global client
+
+def sign_up_with_input():
+	a = input("Username : ")
+	b = getpass.getpass("Password : ")
+	c = getpass.getpass("Confirm New passowrd : ")
+	sign_up(a,b,c)
+
+def sign_up(a,b,c):
+	global client
+
+
+
 
 def subtract(a, b):                              
     return "".join(a.rsplit(b))
@@ -135,6 +161,12 @@ if(__name__=="__main__"):
 	if (sys.argv[1] == 'login'):
 	# login_for_reading()
 		login_with_input()
+	elif (sys.argv[1] == 'config'):
+		sign_up_with_input():
+	elif (sys.argv[1] == 'logout'):
+		logout_from_server()
+	elif (sys.argv[1] == 'edit'):
+		edit_password_with_input()
 	elif (sys.argv[1] == 'upload'):
 		if (os.path.isfile(sys.argv[2])):
 			if "/" not in sys.argv[2]:
@@ -193,3 +225,5 @@ if(__name__=="__main__"):
 
 # print(c)
 # print(os.path.dirname(a))
+
+
