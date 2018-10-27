@@ -12,6 +12,11 @@ import os
 from django.conf import settings
 from django.http import HttpResponse
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.http import JsonResponse
+# from rest_framework import Response
+
 @csrf_exempt
 @login_required
 def list(request,folder_path):
@@ -77,6 +82,18 @@ def download(request, path):
             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
             return response
     raise Http404
+
+@login_required
+def api_file_list(request, folder_path):
+    documents=Document.objects.filter(base_folder=folder_path).filter(username=request.user)
+    folders=Folder.objects.filter(base_folder=folder_path).filter(username=request.user)
+    fold_arr=[]
+    file_arr=[]
+    for folder in folders:
+        fold_arr.append(folder.name)
+    for file in documents:
+        file_arr.append(file.docfile.name)
+    return JsonResponse({'folders':fold_arr, 'files':file_arr},safe=False)
 
 def register(request):
     if request.method == 'POST':

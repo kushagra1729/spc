@@ -5,10 +5,10 @@ import sys
 import re
 import os
 import pickle
-
+from os.path import isfile, join, isdir
 
 client = 0
-
+hardcode= "/home/kushagra/spc/new_int.p"
 logged_in = False #don't delete this
 
 # For moodle login
@@ -19,7 +19,7 @@ def login_with_input():
 	return login(a,b)
 
 def logout_from_server():
-	file_name = "/home/kritin/Desktop/new_int.p"
+	file_name = hardcode
 	fileObject = open(file_name,'wb')
 	d = {}
 	pickle.dump(d,fileObject)
@@ -43,7 +43,7 @@ def login(a,b):
 	if (r.status_code != 200):
 		return False
 	else :
-		file_name = "/home/kritin/Desktop/new_int.p"
+		file_name = hardcode
 		fileObject = open(file_name,'wb')
 		d = {'Username_in_pickle' : a, 'Password_in_pickle' : b}
 		pickle.dump(d,fileObject)
@@ -56,7 +56,7 @@ def login(a,b):
 # Always mantain folder_name ending with /
 
 def login_for_reading():
-	file_name = "/home/kritin/Desktop/new_int.p"
+	file_name = hardcode
 	fileObject = open(file_name,'rb')
 	c = pickle.load(fileObject)
 	# print(c['Username_in_pickle'],c['Password_in_pickle'])
@@ -211,6 +211,80 @@ def subtract(a, b):
     return "".join(a.rsplit(b))
 
 
+def get_filename_from_cd(cd):
+    if not cd:
+        return None
+    fname = re.findall('filename=(.+)', cd)
+    if len(fname) == 0:
+        return None
+    return fname[0]
+
+def download_file(file_name,base_path):
+	global client
+	(u,p)=login_for_reading()
+	login(u,p)
+	url="http://127.0.0.1:8000/files/download/?name="+file_name
+	r=client.get(url,  allow_redirects=True)
+	filename = get_filename_from_cd(r.headers.get('content-disposition'))
+	open(base_path+filename, 'wb').write(r.content)
+	# filename = get_filename_from_cd(r.headers.get('content-disposition'))
+
+def download_folder(base_path):
+	data=api(base_path)
+	folders=data['folders']
+	files=data['files']
+	if not os.path.exists(base_path):
+		os.makedirs(base_path)
+	for file in files:
+		download_file(file,base_path)
+	for folder in folders:
+		download_folder(base_path+folder+"/")
+
+def sync(base_path):
+	if not os.path.exists(base_path):
+		download_folder(base_path)
+	else:
+		data=api(base_path)
+		folders=data['folders']
+		files=data['files']
+		filenames=[]
+		for file in files:
+			name=os.path.basename(file)
+			filenames.append(name)
+			if(not os.path.exists(base_path+name)):
+				download_file(file,base_path)
+		for folder in folders:
+			sync(base_path+folder+"/")
+		clientfiles = [f for f in os.listdir(base_path) if isfile(join(base_path, f))]
+		clientfolders= [f for f in os.listdir(base_path) if isdir(join(base_path, f))]
+		for name in clientfiles:
+			if(name not in filenames):
+				upload_file(name, base_path)
+		for name in clientfolders:
+			if(name not in folders):
+				add_folder(base_path, name)
+				upload_folder(base_path+name+"/")
+
+def sync_start(folder):
+	data=api("")
+	name=folder[:-1]
+	folders=data['folders']
+	# print(folders)
+	if(name not in folders):
+		add_folder("",name)
+		upload_folder(name+"/")
+	else:
+		sync(folder)
+
+def api(folder_path):
+	global client
+	(u,p)=login_for_reading()
+	login(u,p)
+	url="http://127.0.0.1:8000/server/api/files/"+folder_path
+	response=client.get(url)
+	data = response.json()
+	return data
+
 if(__name__=="__main__"):
 	if (sys.argv[1] == 'login'):
 	# login_for_reading()
@@ -273,19 +347,16 @@ if(__name__=="__main__"):
 					# e = file_store+"/"
 					# print("UPLOADING", c, parent+"/")
 					upload_folder(c, parent+"/")
-
-
-				# file_address = sys.argv[2]
-				# parent = os.path.dirname(file_address)
-				# c = subtract(file_address,parent)
-				# d = subtract(c,"/")
-				# add_folder(parent,c)
-				# e = file_address+"/"
-				# upload_folder(e)
-			# add_folder("","newfolder")
-		# upload_folder("newfolder/")
-		# upload_file("hey.txt","")
-
+	elif (sys.argv[1] == 'download'):
+		download_folder("kj/") 
+	elif (sys.argv[1] == 'api'):
+		# print(get_filename_from_cd('server.DB_File/bytes/filename/mimetype/hello1_C289l3e.txt'))
+		api("kj/")
+	elif (sys.argv[1] == 'sync'):
+		with_slash=sys.argv[2]
+		if(with_slash[-1] is not "/"):
+			with_slash=with_slash+"/"
+		sync_start(with_slash)
 
 
 # a = input()
@@ -295,5 +366,4 @@ if(__name__=="__main__"):
 
 # print(c)
 # print(os.path.dirname(a))
-
 

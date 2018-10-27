@@ -7,9 +7,10 @@ from . import views
 
 urlpatterns = [url(r'upload/(?P<folder_path>.*)$',views.list, name='upload'),
 				url(r'^server/media/(?P<path>.+)$',views.download,name='download'),
-				    url(r'^register/$',views.register,name='register'),
-				 url(r'^add_folder/$',views.add_folder,name='add_folder')	
-				]
+				 url(r'^register/$',views.register,name='register'),
+				 url(r'^add_folder/$',views.add_folder,name='add_folder'),
+				 url(r'^api/files/(?P<folder_path>.*)$', views.api_file_list)
+				 ]
 
 if settings.DEBUG:
 	urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
