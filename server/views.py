@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect
 # from django.core.urlresolvers import reverse
 
-from server.models import Document,Reg,Folder
+from server.models import Document,Reg,Folder,DB_File
 from server.forms import DocumentForm,RegistrationForm,FolderForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
@@ -13,6 +13,7 @@ from django.conf import settings
 from django.http import HttpResponse
 
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http import JsonResponse
 # from rest_framework import Response
@@ -21,6 +22,7 @@ from django.http import JsonResponse
 @login_required
 def list(request,folder_path):
     # Handle file upload
+    print("LISTING")
     if request.method == 'POST':
         form = DocumentForm(request.POST, request.FILES)
         if form.is_valid():
@@ -94,6 +96,34 @@ def api_file_list(request, folder_path):
     for file in documents:
         file_arr.append(file.docfile.name)
     return JsonResponse({'folders':fold_arr, 'files':file_arr},safe=False)
+
+@login_required
+@api_view(['POST'])
+@csrf_exempt
+def remove_folder(request):
+    # print("HELLO")
+    name=request.data['name']
+    folder_path=request.data['base_folder']
+    Folder.objects.filter(base_folder=folder_path).filter(username=request.user).filter(name=name).delete()
+    return JsonResponse({},safe=False)
+
+@login_required
+@api_view(['POST'])
+@csrf_exempt
+def remove_file(request):
+    # print("HELLO")
+    name="server.DB_File/bytes/filename/mimetype/"+request.data['name']
+    print(name)
+    folder_path=request.data['base_folder']
+    arr=Document.objects.filter(base_folder=folder_path).filter(username=request.user) #.filter(name=name).delete()
+    DB_File.objects.filter(filename=name).delete()
+    for document in arr:
+        print(document.docfile.name)
+        if(document.docfile.name == name):
+            print("DELETING")
+            document.delete() 
+    return JsonResponse({},safe=False)
+
 
 def register(request):
     if request.method == 'POST':

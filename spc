@@ -78,7 +78,7 @@ def upload_file(file_name, folder_name, farji_folder_name=""):
 		url="http://127.0.0.1:8000/server/upload/"
 		client.get(url)
 		csrftoken = client.cookies['csrftoken']
-		print(csrftoken)
+		# print(csrftoken)
 	
 		if(folder_name==""):
 			files = {'docfile': open(farji_folder_name+file_name,'rb')}
@@ -220,9 +220,6 @@ def get_filename_from_cd(cd):
     return fname[0]
 
 def download_file(file_name,base_path):
-	global client
-	(u,p)=login_for_reading()
-	login(u,p)
 	url="http://127.0.0.1:8000/files/download/?name="+file_name
 	r=client.get(url,  allow_redirects=True)
 	filename = get_filename_from_cd(r.headers.get('content-disposition'))
@@ -265,7 +262,30 @@ def sync(base_path):
 				add_folder(base_path, name)
 				upload_folder(base_path+name+"/")
 
+def remove_folder(base_folder, name):
+	global client
+	(u,p)=login_for_reading()
+	login(u,p)
+	csrftoken = client.cookies['csrftoken']
+	values={'base_folder':base_folder, 'name':name, 'csrfmiddlewaretoken':csrftoken}
+	url="http://127.0.0.1:8000/server/api/remove_folder/"
+	client.post(url, data=values, headers=dict(Referer=url))
+	# print(resp.status_code)
+
+def remove_file(base_folder, name):
+	global client
+	(u,p)=login_for_reading()
+	login(u,p)
+	csrftoken = client.cookies['csrftoken']
+	values={'base_folder':base_folder, 'name':name, 'csrfmiddlewaretoken':csrftoken}
+	url="http://127.0.0.1:8000/server/api/remove_file/"
+	client.post(url, data=values, headers=dict(Referer=url))
+
+
 def sync_start(folder):
+	global client
+	(u,p)=login_for_reading()
+	login(u,p)
 	data=api("")
 	name=folder[:-1]
 	folders=data['folders']
@@ -277,9 +297,6 @@ def sync_start(folder):
 		sync(folder)
 
 def api(folder_path):
-	global client
-	(u,p)=login_for_reading()
-	login(u,p)
 	url="http://127.0.0.1:8000/server/api/files/"+folder_path
 	response=client.get(url)
 	data = response.json()
@@ -349,14 +366,13 @@ if(__name__=="__main__"):
 					upload_folder(c, parent+"/")
 	elif (sys.argv[1] == 'download'):
 		download_folder("kj/") 
-	elif (sys.argv[1] == 'api'):
-		# print(get_filename_from_cd('server.DB_File/bytes/filename/mimetype/hello1_C289l3e.txt'))
-		api("kj/")
 	elif (sys.argv[1] == 'sync'):
 		with_slash=sys.argv[2]
 		if(with_slash[-1] is not "/"):
 			with_slash=with_slash+"/"
 		sync_start(with_slash)
+	else:
+		remove_file("",'Resume2page_12.pdf')
 
 
 # a = input()
@@ -366,4 +382,3 @@ if(__name__=="__main__"):
 
 # print(c)
 # print(os.path.dirname(a))
-
