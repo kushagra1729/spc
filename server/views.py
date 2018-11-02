@@ -49,31 +49,55 @@ def list(request,folder_path):
     return render(request, 'upload/upload.html',
         {'form': form,'documents' : documents, 'folders':folders, 'dir':folder_path})
 
-@csrf_exempt
+# @csrf_exempt
+# @login_required
+# def add_folder(request):
+#     # Handle file upload
+#     if request.method == 'POST':
+#         form = FolderForm(request.POST)
+#         if form.is_valid():
+#             # newdoc = Document(docfile = request.FILES['docfile'])
+#             curruser = form.save(commit=False)
+#             curruser.username=request.user
+#             # form.save()
+
+#             form.save()
+
+#             # Redirect to the document list after POST
+#             return redirect('add_folder') 
+#     else:
+#         form = FolderForm() # A empty, unbound form
+
+#     # Load documents for the list page
+#     documents = Folder.objects.all()
+
+#     # Render list page with the documents and the form
+#     return render(request, 'folder_add/folder_add.html',
+#         {'form': form,'documents' : documents})
+
+
 @login_required
-def add_folder(request):
-    # Handle file upload
-    if request.method == 'POST':
-        form = FolderForm(request.POST)
-        if form.is_valid():
-            # newdoc = Document(docfile = request.FILES['docfile'])
-            curruser = form.save(commit=False)
-            curruser.username=request.user
-            # form.save()
+@api_view(['POST'])
+@csrf_exempt
+def api_upload_file(request):
+    form = DocumentForm(request.POST, request.FILES)
+    curruser = form.save(commit=False)
+    curruser.username=request.user
+    form.save()
+    return JsonResponse({},safe=False)
 
-            form.save()
 
-            # Redirect to the document list after POST
-            return redirect('add_folder') 
-    else:
-        form = FolderForm() # A empty, unbound form
+@login_required
+@api_view(['POST'])
+@csrf_exempt
+def api_upload_folder(request):
+    # print("HELLO")
+    form = FolderForm(request.POST)
+    curruser = form.save(commit=False)
+    curruser.username=request.user
+    form.save()
+    return JsonResponse({},safe=False)
 
-    # Load documents for the list page
-    documents = Folder.objects.all()
-
-    # Render list page with the documents and the form
-    return render(request, 'folder_add/folder_add.html',
-        {'form': form,'documents' : documents})
 
 @login_required
 def download(request, path):

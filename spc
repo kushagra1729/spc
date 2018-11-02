@@ -75,7 +75,7 @@ def upload_file(file_name, folder_name, farji_folder_name=""):
 		if(not logged_in):
 			(a,b)=checker_for_login
 			login(a,b)
-		url="http://127.0.0.1:8000/server/upload/"
+		url="http://127.0.0.1:8000/server/api/upload_file/"
 		client.get(url)
 		csrftoken = client.cookies['csrftoken']
 		# print(csrftoken)
@@ -101,7 +101,7 @@ def add_folder(base_folder, folder_name):
 		if(not logged_in):
 			(a,b)=checker_for_login
 			login(a,b)
-		url="http://127.0.0.1:8000/server/add_folder/"
+		url="http://127.0.0.1:8000/server/api/upload_folder/"
 		client.get(url)
 		csrftoken = client.cookies['csrftoken']
 		print(csrftoken)

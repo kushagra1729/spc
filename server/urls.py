@@ -8,10 +8,12 @@ from . import views
 urlpatterns = [url(r'upload/(?P<folder_path>.*)$',views.list, name='upload'),
 				url(r'^server/media/(?P<path>.+)$',views.download,name='download'),
 				 url(r'^register/$',views.register,name='register'),
-				 url(r'^add_folder/$',views.add_folder,name='add_folder'),
+				 # url(r'^add_folder/$',views.add_folder,name='add_folder'),
 				 url(r'^api/files/(?P<folder_path>.*)$', views.api_file_list),
 				 url(r'^api/remove_folder/$', views.remove_folder),
-				 url(r'^api/remove_file/$', views.remove_file)
+				 url(r'^api/remove_file/$', views.remove_file),
+				 url(r'^api/upload_folder/$', views.api_upload_folder),
+				 url(r'^api/upload_file/$', views.api_upload_file)
 				 ]
 
 if settings.DEBUG:

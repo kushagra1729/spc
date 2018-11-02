@@ -114,19 +114,6 @@
     {% endif %}
 
     
-    <!-- <p> HELLO </p> -->
-        <!-- Upload form. Note enctype attribute! -->
-        <form  method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <!-- <p>{{ form.non_field_errors }}</p> -->
-            <!-- <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p> -->
-            {{form.as_p}}
-           <!--  <p>
-                {{ form.docfile.errors }}
-                {{ form.docfile }}
-            </p> -->
-            <button type = "submit">Upload</button>
-        </form>
         <a href="/accounts/logout" class="button">Logout</a>
         {% if documents %}
        

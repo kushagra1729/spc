@@ -24,13 +24,13 @@
     {% else %}
         <p>No documents.</p>
     {% endif %}
-    
+
     <!-- <p> HELLO </p> -->
         <!-- Upload form. Note enctype attribute! -->
         <form  method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <!-- <p>{{ form.non_field_errors }}</p> -->
-            <!-- <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p> -->
+            <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
             {{form.as_p}}
            <!--  <p>
                 {{ form.docfile.errors }}
@@ -38,7 +38,6 @@
             </p> -->
             <button type = "submit">Add</button>
         </form>
-        
-        
+                
     </body>
 </html> 
