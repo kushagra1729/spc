@@ -118,7 +118,7 @@ def api_file_list(request, folder_path):
     for folder in folders:
         fold_arr.append(folder.name)
     for file in documents:
-        file_arr.append(file.docfile.name)
+        file_arr.append((file.docfile.name,file.md5sum))
     return JsonResponse({'folders':fold_arr, 'files':file_arr},safe=False)
 
 @login_required
@@ -139,7 +139,14 @@ def remove_file(request):
     name="server.DB_File/bytes/filename/mimetype/"+request.data['name']
     print(name)
     folder_path=request.data['base_folder']
+    print(request.user)
+    print(folder_path)
+    temp=Document.objects.filter(base_folder=folder_path+"/")
+    print("TEMP")
+    print(temp)
     arr=Document.objects.filter(base_folder=folder_path).filter(username=request.user) #.filter(name=name).delete()
+    # print("ARR")
+    # print(arr)
     DB_File.objects.filter(filename=name).delete()
     for document in arr:
         print(document.docfile.name)

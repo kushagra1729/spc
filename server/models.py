@@ -12,6 +12,7 @@ class Document(models.Model):
 	description = models.CharField(max_length = 255, blank = True)
 	base_folder = models.CharField(max_length = 255, blank = True)
 	docfile = models.FileField(upload_to='server.DB_File/bytes/filename/mimetype')
+	md5sum = models.CharField(max_length = 255, blank = False)
 	username = models.CharField(max_length=150)
 
 class Folder(models.Model):

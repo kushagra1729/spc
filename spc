@@ -6,10 +6,14 @@ import re
 import os
 import pickle
 from os.path import isfile, join, isdir
+import hashlib
+import shutil
 
 client = 0
 hardcode= "/home/kushagra/spc/new_int.p"
 logged_in = False #don't delete this
+
+# home="/home/kushagra/spc/MAIN/"
 
 # For moodle login
 
@@ -66,8 +70,16 @@ def login_for_reading():
 	else:
 		return False
 
+def md5(file_name, folder_name, farji_folder_name=""):
+    hash_md5 = hashlib.md5()
+    with open(farji_folder_name+folder_name+file_name, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
+
 def upload_file(file_name, folder_name, farji_folder_name=""):
 	# client=requests.session()
+	print("UPLOADING FILE"+file_name+" "+folder_name)
 	global client
 	checker_for_login = login_for_reading()
 	
@@ -79,13 +91,13 @@ def upload_file(file_name, folder_name, farji_folder_name=""):
 		client.get(url)
 		csrftoken = client.cookies['csrftoken']
 		# print(csrftoken)
-	
+		md5sum=md5(file_name, folder_name, farji_folder_name)
 		if(folder_name==""):
 			files = {'docfile': open(farji_folder_name+file_name,'rb')}
 		else:
 			files = {'docfile': open(farji_folder_name+folder_name+file_name,'rb')}
 		# print(files)
-		values = {'description': 'My file', 'base_folder':folder_name,'csrfmiddlewaretoken':csrftoken}
+		values = {'description': 'My file','md5sum':md5sum, 'base_folder':folder_name,'csrfmiddlewaretoken':csrftoken}
 		print("DONE")
 		resp = client.post(url, files=files, data=values, headers=dict(Referer=url))
 		# resp.raise_for_status()
@@ -219,20 +231,33 @@ def get_filename_from_cd(cd):
         return None
     return fname[0]
 
-def download_file(file_name,base_path):
+def download_file(file_name,base_path): 
+	global client
+	(u,p)=login_for_reading()
+	login(u,p)
+	# print(file_name)
 	url="http://127.0.0.1:8000/files/download/?name="+file_name
+	print(url)
 	r=client.get(url,  allow_redirects=True)
-	filename = get_filename_from_cd(r.headers.get('content-disposition'))
+	print(r)
+	# filename = get_filename_from_cd(r.headers.get('content-disposition'))
+	filename=os.path.basename(file_name)
+	print("DOWNLOADING FILE "+filename)
 	open(base_path+filename, 'wb').write(r.content)
 	# filename = get_filename_from_cd(r.headers.get('content-disposition'))
 
 def download_folder(base_path):
+	global client
+	(u,p)=login_for_reading()
+	login(u,p)
+	print("DOWNLOADING FOLDER "+base_path)
 	data=api(base_path)
 	folders=data['folders']
 	files=data['files']
+	print(files)
 	if not os.path.exists(base_path):
 		os.makedirs(base_path)
-	for file in files:
+	for [file,mysum] in files:
 		download_file(file,base_path)
 	for folder in folders:
 		download_folder(base_path+folder+"/")
@@ -245,7 +270,7 @@ def sync(base_path):
 		folders=data['folders']
 		files=data['files']
 		filenames=[]
-		for file in files:
+		for (file,md5sum) in files:
 			name=os.path.basename(file)
 			filenames.append(name)
 			if(not os.path.exists(base_path+name)):
@@ -262,7 +287,90 @@ def sync(base_path):
 				add_folder(base_path, name)
 				upload_folder(base_path+name+"/")
 
+
+def syncup(base_path):
+	if(base_path[-1]=="/"):
+		without_slash=base_path[:-1]
+	else:
+		without_slash=base_path
+	this_base_folder=os.path.dirname(without_slash)+"/"
+	print("BASE FOLDER"+this_base_folder)
+	this_file=os.path.basename(without_slash)
+	if not os.path.exists(base_path):
+		print("FOLDER....")
+		print(base_path)
+		print(this_base_folder)
+		print(this_file)
+		remove_folder(this_base_folder, this_file)
+	else:
+		data=api(base_path)
+		folders=data['folders']
+		files=data['files']
+		filenames=[]
+		for (file,md5sum) in files:
+			name=os.path.basename(file)
+			filenames.append(name)
+			if(not os.path.exists(base_path+name)):
+				remove_file(base_path,name)
+			elif(md5sum!=md5(name,base_path)):
+				remove_file(base_path,name)
+				print("uplading "+base_path+" " +name)
+				upload_file(name, base_path)
+		for folder in folders:
+			syncup(base_path+folder+"/")
+		clientfiles = [f for f in os.listdir(base_path) if isfile(join(base_path, f))]
+		clientfolders= [f for f in os.listdir(base_path) if isdir(join(base_path, f))]
+		for name in clientfiles:
+			if(name not in filenames):
+				# print("uploading "+name)
+				upload_file(name, base_path)
+		for name in clientfolders:
+			if(name not in folders):
+				add_folder(base_path, name)
+				upload_folder(base_path+name+"/")
+
+def syncdown(base_path):
+	if(base_path[-1]=="/"):
+		without_slash=base_path[:-1]
+	else:
+		without_slash=base_path
+	this_base_folder=os.path.dirname(without_slash)+"/"
+	print("BASE FOLDER "+this_base_folder)
+	this_file=os.path.basename(without_slash)
+	print("SYNCING "+this_file)
+	if not os.path.exists(base_path):
+		# download_folder(base_path)
+		print("WRONG") #always ensure that this case never occurs
+	else:
+		data=api(base_path)
+		folders=data['folders']
+		files=data['files']
+		filenames=[]
+		for (file,md5sum) in files:
+			name=os.path.basename(file)
+			filenames.append(name)
+			if(not os.path.exists(base_path+name)):
+				download_file(file,base_path)
+			elif(md5sum!=md5(name,base_path)):
+				os.remove(base_path+name)
+				download_file(file,base_path)
+		for folder in folders:
+			if(not os.path.exists(base_path+folder)):
+				download_folder(base_path+folder+"/")
+			else:
+				syncdown(base_path+folder+"/")
+		clientfiles = [f for f in os.listdir(base_path) if isfile(join(base_path, f))]
+		clientfolders= [f for f in os.listdir(base_path) if isdir(join(base_path, f))]
+		for name in clientfiles:
+			if(name not in filenames):
+				# print("uploading "+name)
+				os.remove(base_path+name)
+		for name in clientfolders:
+			if(name not in folders):
+				shutil.rmtree(base_path+name)
+
 def remove_folder(base_folder, name):
+	print("REMOVING FOLDER "+name+" WITH BASE FOLDER AS "+base_folder)
 	global client
 	(u,p)=login_for_reading()
 	login(u,p)
@@ -273,6 +381,7 @@ def remove_folder(base_folder, name):
 	# print(resp.status_code)
 
 def remove_file(base_folder, name):
+	print("REMOVING FILE "+name+" WITH BASE FOLDER "+base_folder)
 	global client
 	(u,p)=login_for_reading()
 	login(u,p)
@@ -295,6 +404,36 @@ def sync_start(folder):
 		upload_folder(name+"/")
 	else:
 		sync(folder)
+
+def syncup_start(folder):
+	global client
+	(u,p)=login_for_reading()
+	login(u,p)
+	data=api("")
+	name=folder[:-1]
+	folders=data['folders']
+	# print(folders)
+	if(name not in folders):
+		add_folder("",name)
+		upload_folder(name+"/")
+	else:
+		syncup(folder)
+
+def syncdown_start(folder):
+	# print("REACHED")
+	global client
+	(u,p)=login_for_reading()
+	login(u,p)
+	# data=api("")
+	name=folder[:-1]
+	# folders=data['folders']
+	# print(folders)
+	if(not os.path.exists(folder)):
+		# print("DOWNLOADING")
+		download_folder(name+"/")
+	else:
+		# print("PRESENT")
+		syncdown(folder)
 
 def api(folder_path):
 	url="http://127.0.0.1:8000/server/api/files/"+folder_path
@@ -371,8 +510,20 @@ if(__name__=="__main__"):
 		if(with_slash[-1] is not "/"):
 			with_slash=with_slash+"/"
 		sync_start(with_slash)
+	elif(sys.argv[1]=='syncup'): #change its name, same as Rohan's
+		with_slash=sys.argv[2]
+		if(with_slash[-1] is not "/"):
+			with_slash=with_slash+"/"
+		syncup_start(with_slash)
+	elif(sys.argv[1]=='syncdown'): #change its name, same as Rohan's
+		with_slash=sys.argv[2]
+		if(with_slash[-1] is not "/"):
+			with_slash=with_slash+"/"
+		syncdown_start(with_slash)
 	else:
-		remove_file("",'Resume2page_12.pdf')
+		# upload_file("s18.txt","there/")
+		print("ENTER ARGUMENT")
+		
 
 
 # a = input()

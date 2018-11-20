@@ -4,7 +4,7 @@ from server.models import Document,Reg,Folder
 class DocumentForm(forms.ModelForm):
     class Meta:
     	model= Document
-    	fields=('description', 'base_folder', 'docfile',)
+    	fields=('description', 'base_folder', 'docfile','md5sum')
 
 class FolderForm(forms.ModelForm):
     class Meta:
