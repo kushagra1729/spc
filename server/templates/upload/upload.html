@@ -4,13 +4,67 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>Minimal Django File Upload Example</title>   
+        <title>Minimal Django File Upload Example</title>
+        <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+        <script>
+            var fileurl;
+            var scheme = '';
+            var key;
+
+            function decryptAES(ciphertext,key){
+                return ciphertext;
+            }
+
+            function decryptARC(ciphertext,key){
+                return ciphertext;
+            }
+
+            function decryptBF(ciphertext,key){
+                return ciphertext;
+            }
+
+            function decrypt(){
+
+
+                for (i=0; i<document.ende.scheme.length; i++) {
+                    if (document.ende.scheme[i].checked == true) {
+                        scheme = scheme + document.ende.scheme[i].value;
+                    }
+                }
+                key = document.ende.key.value;
+                var oReq = new XMLHttpRequest();
+                oReq.open("GET", fileurl, true);
+                oReq.responseType = "arraybuffer";
+                var filetxt = "Loading...";
+                oReq.onload = function(oEvent) {
+                    filetxt = oReq.response;
+                    if (scheme == "AES") {
+                        filetxt = decryptAES(filetxt,key);
+                    } else if (Scheme = "ARC") {
+                        filetxt = decryptARC(filetxt,key);
+                    } else {
+                        filetxt = decryptBF(filetxt,key);
+                    }
+                    //alert(blob);
+                    filetxt = String.fromCharCode.apply(null, new Uint16Array(filetxt));
+                    document.getElementById("mcont").innerHTML = filetxt;
+                };
+                oReq.onabort = function () {
+                    console.log("** An error occurred during the transaction");
+                }
+                oReq.send();
+
+
+                document.getElementById("mcont").innerHTML = "Loading...";
+
+            }
+        </script>
     </head>
     {% load static %}
-    
-    
-    
-    
+
+
+
+
     <style>
     /* The Modal (background) */
     .center {
@@ -56,12 +110,12 @@
     text-decoration: none;
     cursor: pointer;
 }
-    
+
     </style>
-    
-    
-    
-    
+
+
+
+
     <body>
     <!-- List of uploaded documents -->
     <p> FILES </p>
@@ -73,47 +127,56 @@
 <!-- Trigger/Open The Modal -->
 <button id="myBtn{{ document.docfile.name }}">{{ document.docfile.name }}</button>
 
+
+      </li>
+
+        {% endfor %}
+        </ul>
 <!-- The Modal -->
-<div id="myModal{{ document.docfile.name }}" class="modal center" width="100%" height="100%" >
+<div id="myModal" class="modal center" width="100%" height="100%" >
 
   <!-- Modal content -->
   <div class="modal-content center" width="100%" height="100%" >
-    <span class="close{{ document.docfile.name }}">&times;</span>
-    <embed src="{% url "db_file_storage.get_file" %}?name={{ document.docfile }}" width="1500px" height="700px" >
-    
+    <span class="close">&times;</span>
+
+    <div id="mcont">
+    	<form id="myform" name="ende" onSubmit="return decrypt()">
+          <input type="radio" name="scheme" value="AES" checked="checked"> AES <br>
+          <input type="radio" name="scheme" value="ARC"> ARC4 <br>
+          <input type="radio" name="scheme" value="BF"> Blowfish <br>
+          Key: <input type="text" name="key">
+          <input type="submit" value="Submit">
+      </form>
+    </div>
   </div>
 
 </div>
-      </li>      
-            
-        {% endfor %}
-        </ul>
     {% else %}
         <p>No documents.</p>
 
     {% endif %}
 
-    
+
     <p> FOLDERS </p>
 
     {% if folders %}
         <ul>
         {% for folder in folders %}
             <li>
-           <!--<a href="{% url "db_file_storage.get_file" %}?name={{ document.docfile }}">{{ document.docfile.name }}</a>--> 
+           <!--<a href="{% url "db_file_storage.get_file" %}?name={{ document.docfile }}">{{ document.docfile.name }}</a>-->
 <!-- Trigger/Open The Modal -->
 <a href="/server/upload/{{ dir }}{{ folder.name }}/">
 <button id="myBtn{{ folder.name }}">{{ folder.name }}</button>
 </a>
-      </li>      
-            
+      </li>
+
         {% endfor %}
         </ul>
     {% else %}
         <p>No folders.</p>
     {% endif %}
 
-    
+
     <!-- <p> HELLO </p> -->
         <!-- Upload form. Note enctype attribute! -->
         <form  method="post" enctype="multipart/form-data">
@@ -129,9 +192,18 @@
         </form>
         <a href="/accounts/logout" class="button">Logout</a>
         {% if documents %}
-       
+
+       <script type="text/javascript">
+        	var modal = document.getElementById('myModal');
+        	var span = document.getElementsByClassName("close")[0];
+        	// When the user clicks on <span> (x), close the modal
+			span.onclick = function() {
+    		modal.style.display = "none";
+			}
+        </script>
+
         {% for document in documents %}
-            <script>  
+            <script>
 
     var path = document.getElementById("myBtn{{ document.docfile.name }}")
     var name = "{{ document.docfile.name }}".match(/([^\/]*)\/*$/)[1]
@@ -139,81 +211,57 @@
 
 
         // Get the modal
-var modal{{ forloop.counter }} = document.getElementById('myModal{{ document.docfile.name }}');
 
 // Get the button that opens the modal
 var btn{{ forloop.counter }} = document.getElementById("myBtn{{ document.docfile.name }}");
 
-// Get the <span> element that closes the modal
-var span{{ forloop.counter }} = document.getElementsByClassName("close{{ document.docfile.name }}")[0];
-
-// When the user clicks on the button, open the modal 
+// When the user clicks on the button, open the modal
 btn{{ forloop.counter }}.onclick = function() {
-    modal{{ forloop.counter }}.style.display = "block";
+    document.getElementById("mcont").innerHTML = "<form id=\"myform\" name=\"ende\" onSubmit=\"return decrypt()\">\n" +
+        "          <input type=\"radio\" name=\"scheme\" value=\"AES\" checked=\"checked\"> AES <br>\n" +
+        "          <input type=\"radio\" name=\"scheme\" value=\"ARC\"> ARC4 <br>\n" +
+        "          <input type=\"radio\" name=\"scheme\" value=\"BF\"> Blowfish <br>\n" +
+        "          Key: <input type=\"text\" name=\"key\">\n" +
+        "          <input type=\"submit\" value=\"Submit\">";
+    fileurl = "{% url "db_file_storage.get_file" %}?name={{ document.docfile }}";
+    modal.style.display = "block";
 }
 
-// When the user clicks on <span> (x), close the modal
-span{{ forloop.counter }}.onclick = function() {
-    modal{{ forloop.counter }}.style.display = "none";
-}
 
-   
-     </script>       
-            
+     </script>
+
         {% endfor %}
-       
-    
+
     {% endif %}
-        
-<!-- 
+
+<!--
     {% if folders %}
-       
+
         {% for folder in folders %}
-            <script>  
+            <script>
 // Get the button that opens the modal
 var btn{{ folder.name }} = document.getElementById("myBtn{{ folder.name }}");
 
-// When the user clicks on the button, open the modal 
+// When the user clicks on the button, open the modal
 btn{{ folder.name }}.onclick = function() {
-    
+
 }
 
-     </script>       
-            
+     </script>
+
         {% endfor %}
-       
-    
+
+
     {% endif %}
  -->
-        
-        <script>
-        
+
+<script>
         // When the user clicks anywhere outside of the modal, close it
 window.onclick = function(event) {
-    if (false
-    {% if documents %}
-
-        {% for document in documents %}
-        || event.target == modal{{ forloop.counter }}
-        {% endfor %}
-       
-    
-    {% endif %}
-    ) {
-    {% if documents %}
-       
-        {% for document in documents %}
-        modal{{ forloop.counter }}.style.display = "none";
-        {% endfor %}
-       
-    
-    {% endif %}
+    if (event.target == modal) {
+    	modal.style.display = "none";
     }
 }
         </script>
-        
-        
-        
-        
     </body>
 </html> 
