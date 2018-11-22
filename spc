@@ -12,9 +12,10 @@ import sqlite3
 import csv
 
 
-con = sqlite3.connect("/home/kritin/Pictures/spc/new_int.db")
+con = sqlite3.connect("new_int.db")
 cur = con.cursor()
-
+cur.execute("DROP TABLE IF EXISTS LOGIN_CHECKER")
+cur.execute('''CREATE TABLE LOGIN_CHECKER (username , password , encryption_scheme , encryption_key , url);''')
 
 client = 0
 hardcode= "/home/kritin/Pictures/spc/new_int.db"
@@ -27,7 +28,8 @@ home="/home/kritin/TESTING/"
 def login_with_input():
 	a = input("Username : ")
 	b = getpass.getpass("Password : ")
-	return login(a,b)
+	
+	return login(a,b,)
 
 def logout_from_server():
 	file_name = hardcode
@@ -36,7 +38,7 @@ def logout_from_server():
 	pickle.dump(d,fileObject)
 	fileObject.close()
 
-def login(a,b):
+def login(a,b,c,d,e):
 	global client
 	global logged_in
 	client = requests.session()
@@ -55,11 +57,14 @@ def login(a,b):
 	if (r.status_code != 200):
 		return False
 	else :
-		file_name = hardcode
-		fileObject = open(file_name,'wb')
-		d = {'Username_in_pickle' : a, 'Password_in_pickle' : b}
-		pickle.dump(d,fileObject)
-		fileObject.close()
+		# file_name = hardcode
+		# fileObject = open(file_name,'wb')
+		# d = {'Username_in_pickle' : a, 'Password_in_pickle' : b}
+		# pickle.dump(d,fileObject)
+		# fileObject.close()
+		to_db1 = [ (a,b,c,d,e) ]
+		cur.executemany('''INSERT INTO LOGIN_CHECKER (username, password, encryption_scheme, encryption_key, url) VALUES (?,?,?,?,?);''',to_db1)
+		con.commit()
 		logged_in = True
 		return True
 	# page = client.get('https://127.0.0.1:8000/server/upload').content
@@ -199,14 +204,13 @@ def edit_password(c,a):
 		return True
 	
 
-def sign_up_with_input():
+def sign_up_with():
 	a = input("Username : ")
 	b = getpass.getpass("Password : ")
-	c = getpass.getpass("Confirm New passowrd : ")
-	if(b!=c):
-		print("Sorry the passwords don't match")
-		return False
-	return sign_up(a,b,c)
+	c = input("Encryption Scheme : ")
+	d = input("Encryption Key : ")
+	e = input("URL : ")
+	return login(a,b,c,d,e)
 
 def sign_up(a,b,c):
 	global client
@@ -439,11 +443,11 @@ if(__name__=="__main__"):
 	# login_for_reading()
 		login_with_input()
 	elif (sys.argv[1] == 'config'):
-		a=sign_up_with_input()
+		a=sign_up_with()
 		if(not a):
 			print("Sorry there was some error while sign up. Please retry.")
 		else:
-			print("Signup completed")
+			print("Config completed")
 	elif (sys.argv[1] == 'logout'):
 		logout_from_server()
 	# You must be already logged in to change your password
