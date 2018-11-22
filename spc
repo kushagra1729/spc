@@ -15,7 +15,7 @@ import csv
 con = sqlite3.connect("new_int.db")
 cur = con.cursor()
 cur.execute("DROP TABLE IF EXISTS LOGIN_CHECKER")
-cur.execute('''CREATE TABLE LOGIN_CHECKER (username , password , encryption_scheme , encryption_key , url);''')
+cur.execute('''CREATE TABLE LOGIN_CHECKER (username , password , encryption_scheme , encryption_key , url, value);''')
 
 client = 0
 hardcode= "/home/kritin/Pictures/spc/new_int.db"
@@ -28,8 +28,8 @@ home="/home/kritin/TESTING/"
 def login_with_input():
 	a = input("Username : ")
 	b = getpass.getpass("Password : ")
-	
-	return login(a,b,)
+	return login(a,b)
+
 
 def logout_from_server():
 	file_name = hardcode
@@ -38,7 +38,33 @@ def logout_from_server():
 	pickle.dump(d,fileObject)
 	fileObject.close()
 
-def login(a,b,c,d,e):
+def login(a,b):
+	global client
+	global logged_in
+	client = requests.session()
+	url="http://127.0.0.1:8000/accounts/login/"
+	client.get(url)
+	csrftoken = client.cookies['csrftoken']
+	login_data = {
+		'username': a,
+		'password': b,
+		'submit': 'login',
+		'csrfmiddlewaretoken':csrftoken
+	}
+
+	r = client.post(url, data=login_data)
+
+	if (r.status_code != 200):
+		return False
+	else :
+		logged_in = True
+		return True
+	# page = client.get('https://127.0.0.1:8000/server/upload').content
+	# 	print(page)
+
+
+
+def login_config(a,b,c,d,e):
 	global client
 	global logged_in
 	client = requests.session()
@@ -62,8 +88,8 @@ def login(a,b,c,d,e):
 		# d = {'Username_in_pickle' : a, 'Password_in_pickle' : b}
 		# pickle.dump(d,fileObject)
 		# fileObject.close()
-		to_db1 = [ (a,b,c,d,e) ]
-		cur.executemany('''INSERT INTO LOGIN_CHECKER (username, password, encryption_scheme, encryption_key, url) VALUES (?,?,?,?,?);''',to_db1)
+		to_db1 = [ (a,b,c,d,e,"0") ]
+		cur.executemany('''INSERT INTO LOGIN_CHECKER (username, password, encryption_scheme, encryption_key, url, value) VALUES (?,?,?,?,?);''',to_db1)
 		con.commit()
 		logged_in = True
 		return True
@@ -73,13 +99,16 @@ def login(a,b,c,d,e):
 # Always mantain folder_name ending with /
 
 def login_for_reading():
-	file_name = hardcode
-	fileObject = open(file_name,'rb')
-	c = pickle.load(fileObject)
+	# file_name = hardcode
+	# fileObject = open(file_name,'rb')
+	# c = pickle.load(fileObject)
+
 	# print(c['Username_in_pickle'],c['Password_in_pickle'])
-	f = bool(c)
+	a = cur.execute('''SELECT username FROM LOGIN_CHECKER WHERE value = "0";''' )
+	b = cur.execute('''SELECT password FROM LOGIN_CHECKER WHERE value = "0";''' )
+	f = True
 	if (f == True):
-		return (c['Username_in_pickle'],c['Password_in_pickle'])
+		return (a,b)
 	else:
 		return False
 
@@ -210,7 +239,7 @@ def sign_up_with():
 	c = input("Encryption Scheme : ")
 	d = input("Encryption Key : ")
 	e = input("URL : ")
-	return login(a,b,c,d,e)
+	return login_config(a,b,c,d,e)
 
 def sign_up(a,b,c):
 	global client
