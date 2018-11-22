@@ -8,12 +8,19 @@ import pickle
 from os.path import isfile, join, isdir
 import hashlib
 import shutil
+import sqlite3
+import csv
+
+
+con = sqlite3.connect("/home/kritin/Pictures/spc/new_int.db")
+cur = con.cursor()
+
 
 client = 0
-hardcode= "/home/kushagra/spc/new_int.p"
+hardcode= "/home/kritin/Pictures/spc/new_int.db"
 logged_in = False #don't delete this
 
-home="/home/kushagra/FINAL/"
+home="/home/kritin/TESTING/"
 
 # For moodle login
 

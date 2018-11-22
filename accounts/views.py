@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 
 def passchangedone(request):
     logout(request)
-    return render(request, 'registration/passchangedone.html')
+    return render(request, 'accounts/passchangedone.html')
 
 def signup(request):
     if request.method == 'POST':
@@ -18,4 +18,4 @@ def signup(request):
             return redirect('/accounts/login')
     else:
         form = UserCreationForm()
-    return render(request, 'registration/signup.html', {'form': form})
+    return render(request, 'accounts/signup.html', {'form': form})

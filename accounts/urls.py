@@ -6,12 +6,12 @@ app_name = 'accounts'
 
 urlpatterns = [
     url(r'^signup/$', views.signup, name='signup'),
-    url(r'^login/$', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    url(r'^login/$', auth_views.LoginView.as_view(template_name='accounts/login.html'), name='login'),
     url(r'^change-password/$',
-        auth_views.PasswordChangeView.as_view(template_name='registration/passchange.html',
+        auth_views.PasswordChangeView.as_view(template_name='accounts/passchange.html',
                                               success_url='done/'),name='pass_change'),
     url(r'^change-password/done/$',
-        views.passchangedone,
+        auth_views.LoginView.as_view(template_name='accounts/login.html'),
         name='password_change_done'
         ),
     url('', include('django.contrib.auth.urls')),
