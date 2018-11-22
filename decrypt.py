@@ -125,7 +125,7 @@ class OpenAES(object):
 # ff.write(f.read())
 # f.close()
 # ff.close()
-print(Blowfish.block_size)
+#print(Blowfish.block_size)
 #
 # f=OpenARC('onkar','newtest.txt','rb')
 # ff=open('encnew.txt','wb')
@@ -140,9 +140,9 @@ print(Blowfish.block_size)
 # ff.close()
 
 #
-# f=open('encimageBF','rb')
-# ff=OpenBF('onkar','decimageBF.jpg','wb')
-# ff.write(f.read())
-# f.close()
-# ff.close()
+f=open('ench.txt','rb')
+ff=OpenBF('onkar','/home/onkar/Downloads/decf.txt','wb')
+ff.write(f.read())
+f.close()
+ff.close()
 

@@ -65,8 +65,9 @@
         <script type="text/javascript" src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.js"></script>
         <script src="https://www.cse.iitb.ac.in/~onkard/arc4.js"></script>
-        <script src="https://unpkg.com/egoroof-blowfish@2.1.0" crossorigin="anonymous" integrity="sha384-0H9x/+kblTVPh935mDnPd8xKFQKyQyAuJyBSmQWQ66Foe6lav6k0BZsiY5JsQ3Dm"></script>
+        <script src="http://sladex.org/blowfish.js/ext/blowfish.js"></script>
         <script>
+
 
 
             function str2ab(str) {
@@ -84,9 +85,6 @@
               tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
               return tmp.buffer;
             };
-
-
-
 
             /////////////////////////////////////////////////////////////////////////
             /////////////////////////////////////////////////////////////////////////
@@ -112,21 +110,34 @@
             }
 
             function decryptBF(ciphertext,key){
-                return ciphertext;
-            }
+                return blowfish['decrypt'](ciphertext,key,{outputType: 3, cipherMode: 1});
 
+                //var bf = new Blowfish(key, "cbc");
+                //return bf.decrypt(ciphertext.slice(8), ciphertext.slice(0,8));
+
+                //const bf = new Blowfish(key, Blowfish.MODE.CBC);
+                //bf.setIv(ciphertext.slice(0,8));
+                //return bf.decode(ciphertext.slice(8), Blowfish.TYPE.STRING);
+            }
+            /*
+            function crypt (mode) {
+                var d = (data.value).replace("'", "\'");
+                jscode.value = 'blowfish.'+mode+'(\''+d+'\', \''+key.value+'\', {cipherMode: '+ciphermode.value+', outputType: '+outputtype.value+'});'
+                result.value = blowfish[mode](data.value, key.value, {outputType: +outputtype.value, cipherMode: +ciphermode.value});
+            }
+            */
 
             //DECRYPTION FUNCTIONS END
             /////////////////////////////////////////////////////////////////////////
             /////////////////////////////////////////////////////////////////////////
 
             var modal = document.getElementById('myModal');
-            var fileurl = '';
-            var scheme = '';
-            var vd = '';
-            var key;
 
             function decrypt(){
+                var fileurl = '';
+                var scheme = '';
+                var vd = '';
+                var key;
 
                 for (i=0; i<document.files.fileurl.length; i++) {
                     if (document.files.fileurl[i].checked == true) {
@@ -144,11 +155,6 @@
                     }
                 }
                 key = document.files.key.value;
-
-
-
-                //request.send();
-
 
                 var oReq = new XMLHttpRequest();
                 oReq.open("GET", fileurl, true);
@@ -190,20 +196,10 @@
                         }
                     } else a.click();
 
-
-                    // remove `a` following `Save As` dialog,
-                    // `window` regains `focus`
-                    //window.onfocus = function () {
-                     // document.body.removeChild(a)
-                    //}
-                };
-                oReq.onabort = function () {
-                    console.log("** An error occurred during the transaction");
                 };
                 oReq.send();
-
-                document.getElementById("mcont").innerHTML = "Loading...";
-
+                document.getElementById("files").reset();
+                return false;
             }
         </script>
     </head>
@@ -211,8 +207,6 @@
 
     <body>
     <!-- List of uploaded documents -->
-    <p id="hey"></p>
-
     <p> FILES </p>
     <div class="row">
     {% if documents %}
