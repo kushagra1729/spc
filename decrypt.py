@@ -63,12 +63,14 @@ class OpenARC(object):
     def read(self):
         r = self.file_obj.read()
         iv = Random.new().read(self.bs)
-        cipher = ARC4.new(SHA.new(self.key+iv).digest())
+        #cipher = ARC4.new(SHA.new(self.key+iv).digest())
+        cipher = ARC4.new(hashlib.sha256(self.key + iv).digest())
         return iv + cipher.encrypt(r)
         #return r
     def write(self,enc):
         iv = enc[:self.bs]
-        cipher = ARC4.new(SHA.new(self.key+iv).digest())
+        cipher = ARC4.new(hashlib.sha256(self.key+iv).digest())
+        print(hashlib.sha256(self.key+iv).digest())
         return self.file_obj.write(cipher.decrypt(enc[self.bs:]))
     def close(self):
         self.file_obj.close()
@@ -118,22 +120,29 @@ class OpenAES(object):
 
 
 #
-# f=open('encimageAES','rb')
-# ff=OpenAES('onkar','decimageAES.jpg','wb')
+# f=open('encf.txt','rb')
+# ff=OpenARC('onkar','/home/onkar/Downloads/decf.txt','wb')
 # ff.write(f.read())
 # f.close()
 # ff.close()
+print(Blowfish.block_size)
 #
-#
+# f=OpenARC('onkar','newtest.txt','rb')
+# ff=open('encnew.txt','wb')
+# ff.write(f.read())
+# f.close()
+# ff.close()
+# #
 # f=open('encimageARC','rb')
 # ff=OpenARC('onkar','decimageARC.jpg','wb')
 # ff.write(f.read())
 # f.close()
 # ff.close()
-#
+
 #
 # f=open('encimageBF','rb')
 # ff=OpenBF('onkar','decimageBF.jpg','wb')
 # ff.write(f.read())
 # f.close()
 # ff.close()
+

@@ -1,71 +1,8 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="utf-8">
-        <title>Minimal Django File Upload Example</title>
-        <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-        <script>
-            var fileurl;
-            var scheme = '';
-            var key;
-
-            function decryptAES(ciphertext,key){
-                return ciphertext;
-            }
-
-            function decryptARC(ciphertext,key){
-                return ciphertext;
-            }
-
-            function decryptBF(ciphertext,key){
-                return ciphertext;
-            }
-
-            function decrypt(){
-
-
-                for (i=0; i<document.ende.scheme.length; i++) {
-                    if (document.ende.scheme[i].checked == true) {
-                        scheme = scheme + document.ende.scheme[i].value;
-                    }
-                }
-                key = document.ende.key.value;
-                var oReq = new XMLHttpRequest();
-                oReq.open("GET", fileurl, true);
-                oReq.responseType = "arraybuffer";
-                var filetxt = "Loading...";
-                oReq.onload = function(oEvent) {
-                    filetxt = oReq.response;
-                    if (scheme == "AES") {
-                        filetxt = decryptAES(filetxt,key);
-                    } else if (Scheme = "ARC") {
-                        filetxt = decryptARC(filetxt,key);
-                    } else {
-                        filetxt = decryptBF(filetxt,key);
-                    }
-                    //alert(blob);
-                    filetxt = String.fromCharCode.apply(null, new Uint16Array(filetxt));
-                    document.getElementById("mcont").innerHTML = filetxt;
-                };
-                oReq.onabort = function () {
-                    console.log("** An error occurred during the transaction");
-                }
-                oReq.send();
-
-
-                document.getElementById("mcont").innerHTML = "Loading...";
-
-            }
-        </script>
-    </head>
-    {% load static %}
-
-
-
-
-    <style>
+        <style>
     /* The Modal (background) */
     .center {
     margin: auto;
@@ -95,6 +32,17 @@
     border: 1px solid #888;
     width: 80%; /* Could be more or less, depending on screen size */
 }
+.column {
+    float: left;
+    width: 50%;
+}
+
+/* Clear floats after the columns */
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
 
 /* The Close Button */
 .close {
@@ -112,49 +60,197 @@
 }
 
     </style>
+        <meta charset="utf-8">
+        <title>Minimal Django File Upload Example</title>
+        <script type="text/javascript" src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.js"></script>
+        <script src="https://www.cse.iitb.ac.in/~onkard/arc4.js"></script>
+        <script src="https://unpkg.com/egoroof-blowfish@2.1.0" crossorigin="anonymous" integrity="sha384-0H9x/+kblTVPh935mDnPd8xKFQKyQyAuJyBSmQWQ66Foe6lav6k0BZsiY5JsQ3Dm"></script>
+        <script>
+
+
+            function str2ab(str) {
+              var buf = new ArrayBuffer(str.length); // 2 bytes for each char
+              var bufView = new Uint8Array(buf);
+              for (var i=0, strLen=str.length; i<strLen; i++) {
+                bufView[i] = str.charCodeAt(i);
+              }
+              return buf;
+            }
+
+            var appendBuffer = function(buffer1, buffer2) {
+              var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+              tmp.set(new Uint8Array(buffer1), 0);
+              tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+              return tmp.buffer;
+            };
 
 
 
+
+            /////////////////////////////////////////////////////////////////////////
+            /////////////////////////////////////////////////////////////////////////
+            //DECRYPTION FUNCTIONS BEGIN
+
+
+            function decryptAES(ciphertext,key){
+                var iv = ciphertext.slice(0,16);
+                var key = new Uint8Array(sha256.arrayBuffer(str2ab(key)));
+                var aesCbc = new aesjs.ModeOfOperation.cbc(key, iv);
+                var decryptedBytes = aesCbc.decrypt(ciphertext.slice(16));
+                var sl = 0 - decryptedBytes.slice(-1);
+                return decryptedBytes.slice(0,sl);
+            }
+
+            function decryptARC(ciphertext,key){
+                var iv = ciphertext.slice(0,16);
+                var k = sha256.array(appendBuffer(str2ab(key),iv));
+                k = String.fromCharCode.apply("", k);
+                var cipher = new ARC4(k);
+                return cipher.decrypt(String.fromCharCode.apply("", ciphertext.slice(16)));
+
+            }
+
+            function decryptBF(ciphertext,key){
+                return ciphertext;
+            }
+
+
+            //DECRYPTION FUNCTIONS END
+            /////////////////////////////////////////////////////////////////////////
+            /////////////////////////////////////////////////////////////////////////
+
+            var modal = document.getElementById('myModal');
+            var fileurl = '';
+            var scheme = '';
+            var vd = '';
+            var key;
+
+            function decrypt(){
+
+                for (i=0; i<document.files.fileurl.length; i++) {
+                    if (document.files.fileurl[i].checked == true) {
+                        fileurl = fileurl + document.files.fileurl[i].value;
+                    }
+                }
+                for (i=0; i<document.files.scheme.length; i++) {
+                    if (document.files.scheme[i].checked == true) {
+                        scheme = scheme + document.files.scheme[i].value;
+                    }
+                }
+                for (i=0; i<document.files.vd.length; i++) {
+                    if (document.files.vd[i].checked == true) {
+                        vd = vd + document.files.vd[i].value;
+                    }
+                }
+                key = document.files.key.value;
+
+
+
+                //request.send();
+
+
+                var oReq = new XMLHttpRequest();
+                oReq.open("GET", fileurl, true);
+                oReq.responseType = "arraybuffer";
+                var filetxt = "Loading...";
+                oReq.onload = function(oEvent) {
+                    filetxt = new Uint8Array(oReq.response);
+                    if (scheme == "AES") {
+                        filetxt = decryptAES(filetxt,key);
+                    } else if (scheme == "ARC") {
+                        filetxt = decryptARC(filetxt,key);
+                    } else {
+                        filetxt = decryptBF(filetxt,key);
+                    }
+                    //alert(blob);
+                    fileblob = new Blob([new Uint8Array(filetxt)]);
+                    file = window.URL.createObjectURL(fileblob);
+
+                    var re = /(?:\.([^.]+))?$/;
+                    var ext = re.exec(fileurl)[1];
+
+                    var a = document.createElement("a");
+                    a.href = file;
+                    a.download = fileurl.match(/([^\/]*)\/*$/)[1];
+                    document.body.appendChild(a);
+
+
+                    if (vd == "view"){
+                        modal.style.display = "block";
+                        if (ext == "txt") {
+                            document.getElementById("mcont").innerHTML = "<embed type='text/plain' src='" + file + "' width='1500px' height='700px' scale='tofit'/>";
+                        }else if (ext == "jpg") {
+                            //document.getElementById("hey").innerHTML = "came to jpg";
+                            document.getElementById("mcont").innerHTML = "<embed type='image/jpeg' src='" + file + "'width='1500px' height='700px' scale='tofit'/>";
+                        } else if (ext == "mp4") {
+                            document.getElementById("mcont").innerHTML = "<embed type='video/mpeg' src='" + file + "'width='1500px' height='700px' scale='tofit'/>";
+                        } else {
+                            document.getElementById("mcont").innerHTML = "<embed src='" + file + "'width='1500px' height='700px' scale='tofit'/>";
+                        }
+                    } else a.click();
+
+
+                    // remove `a` following `Save As` dialog,
+                    // `window` regains `focus`
+                    //window.onfocus = function () {
+                     // document.body.removeChild(a)
+                    //}
+                };
+                oReq.onabort = function () {
+                    console.log("** An error occurred during the transaction");
+                };
+                oReq.send();
+
+                document.getElementById("mcont").innerHTML = "Loading...";
+
+            }
+        </script>
+    </head>
+    {% load static %}
 
     <body>
     <!-- List of uploaded documents -->
+    <p id="hey"></p>
+
     <p> FILES </p>
+    <div class="row">
     {% if documents %}
-        <ul>
+        <form id="files" name="files" onSubmit="return decrypt()">
+        <div class="column">
         {% for document in documents %}
-            <li>
-           <a href="{% url "db_file_storage.download_file" %}?name={{ document.docfile }}">Download</a>
-<!-- Trigger/Open The Modal -->
-<button id="myBtn{{ document.docfile.name }}">{{ document.docfile.name }}</button>
-
-
-      </li>
-
+            <input  type="radio" name="fileurl" value="{% url "db_file_storage.download_file" %}?name={{ document.docfile }}" checked="checked"> <div id="radbtn{{ document.docfile.name }}">{{ document.docfile.name }} </div><br>
         {% endfor %}
-        </ul>
-<!-- The Modal -->
-<div id="myModal" class="modal center" width="100%" height="100%" >
-
-  <!-- Modal content -->
-  <div class="modal-content center" width="100%" height="100%" >
-    <span class="close">&times;</span>
-
-    <div id="mcont">
-    	<form id="myform" name="ende" onSubmit="return decrypt()">
-          <input type="radio" name="scheme" value="AES" checked="checked"> AES <br>
-          <input type="radio" name="scheme" value="ARC"> ARC4 <br>
-          <input type="radio" name="scheme" value="BF"> Blowfish <br>
-          Key: <input type="text" name="key">
-          <input type="submit" value="Submit">
-      </form>
-    </div>
-  </div>
-
-</div>
-    {% else %}
+        </div>
+        <div class="column">
+            <input type="radio" name="scheme" value="AES" checked="checked"> AES <br>
+            <input type="radio" name="scheme" value="ARC"> ARC4 <br>
+            <input type="radio" name="scheme" value="BF"> Blowfish <br>
+            Key: <input type="text" name="key"><br>
+            <input type="radio" name="vd" value="view" checked="checked"> View <br>
+            <input type="radio" name="vd" value="download"> Download <br>
+            <input type="submit" value="Submit">
+        </div>
+        </form>
+        {% else %}
         <p>No documents.</p>
 
     {% endif %}
+    </div>
+    <!-- The Modal -->
+<div id="myModal" class="modal center" width="100%" height="100%" >
+
+  <!-- Modal content -->
+  <div  class="modal-content center" width="100%" height="100%" >
+    <span class="close">&times;</span>
+    <div id="mcont"></div>
+  </div>
+
+</div>
+
+
+
+
 
 
     <p> FOLDERS </p>
@@ -204,64 +300,27 @@
 
         {% for document in documents %}
             <script>
-
-    var path = document.getElementById("myBtn{{ document.docfile.name }}")
-    var name = "{{ document.docfile.name }}".match(/([^\/]*)\/*$/)[1]
-    document.getElementById("myBtn{{ document.docfile.name }}").innerHTML = name;
-
-
-        // Get the modal
-
-// Get the button that opens the modal
-var btn{{ forloop.counter }} = document.getElementById("myBtn{{ document.docfile.name }}");
-
-// When the user clicks on the button, open the modal
-btn{{ forloop.counter }}.onclick = function() {
-    document.getElementById("mcont").innerHTML = "<form id=\"myform\" name=\"ende\" onSubmit=\"return decrypt()\">\n" +
-        "          <input type=\"radio\" name=\"scheme\" value=\"AES\" checked=\"checked\"> AES <br>\n" +
-        "          <input type=\"radio\" name=\"scheme\" value=\"ARC\"> ARC4 <br>\n" +
-        "          <input type=\"radio\" name=\"scheme\" value=\"BF\"> Blowfish <br>\n" +
-        "          Key: <input type=\"text\" name=\"key\">\n" +
-        "          <input type=\"submit\" value=\"Submit\">";
-    fileurl = "{% url "db_file_storage.get_file" %}?name={{ document.docfile }}";
-    modal.style.display = "block";
-}
-
-
-     </script>
+                var path = document.getElementById("radbtn{{ document.docfile.name }}");
+                var name = "{{ document.docfile.name }}".match(/([^\/]*)\/*$/)[1];
+                document.getElementById("radbtn{{ document.docfile.name }}").innerHTML = name;
+            </script>
 
         {% endfor %}
 
     {% endif %}
-
-<!--
-    {% if folders %}
-
-        {% for folder in folders %}
-            <script>
-// Get the button that opens the modal
-var btn{{ folder.name }} = document.getElementById("myBtn{{ folder.name }}");
-
-// When the user clicks on the button, open the modal
-btn{{ folder.name }}.onclick = function() {
-
-}
-
-     </script>
-
-        {% endfor %}
-
-
-    {% endif %}
- -->
-
 <script>
-        // When the user clicks anywhere outside of the modal, close it
-window.onclick = function(event) {
-    if (event.target == modal) {
-    	modal.style.display = "none";
-    }
-}
-        </script>
+            var modal = document.getElementById('myModal');
+        	var span = document.getElementsByClassName("close")[0];
+        	// When the user clicks on <span> (x), close the modal
+			span.onclick = function() {
+    		    modal.style.display = "none";
+			};
+			window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            };
+</script>
+
     </body>
 </html> 

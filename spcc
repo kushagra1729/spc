@@ -72,13 +72,13 @@ class OpenARC(object):
     def read(self):
         r = self.file_obj.read()
         iv = Random.new().read(self.bs)
-        cipher = ARC4.new(SHA.new(self.key + iv).digest())
+        cipher = ARC4.new(hashlib.sha256(self.key + iv).digest())
         return iv + cipher.encrypt(r)
         # return r
 
     def write(self, enc):
         iv = enc[:self.bs]
-        cipher = ARC4.new(SHA.new(self.key + iv).digest())
+        cipher = ARC4.new(hashlib.sha256(self.key + iv).digest())
         return self.file_obj.write(cipher.decrypt(enc[self.bs:]))
 
     def close(self):
