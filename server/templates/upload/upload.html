@@ -110,7 +110,7 @@
                         }else if (ext == "jpg") {
                             document.getElementById("mcont").innerHTML = "<embed type='image/jpeg' src='" + file + "'width='1500px' height='700px' scale='tofit'/>";
                         } else if (ext == "mp4") {
-                            document.getElementById("mcont").innerHTML = "<embed type='video/mp4' src='" + file + "'width='1500px' height='700px' scale='tofit'/>";
+                            document.getElementById("mcont").innerHTML = "<video controls id='myvid' type='video/mp4' src='" + file + "'width='1500px' height='700px' scale='tofit'></video>";
                         } else {
                             document.getElementById("mcont").innerHTML = "<embed src='" + file + "'width='1500px' height='700px' scale='tofit'/>";
                         }
@@ -360,7 +360,7 @@ body, html {
 	        		<div class="col">
 		        	<div class="form-group">
 		        		<label for="filename">Files</label>
-		        		<select multiple class="form-control" style="height:200px" id="fileurl" name="fileurl">
+		        		<select multiple class="form-control" style="height:235px" id="fileurl" name="fileurl">
 			            {% for document in documents %}
 			                <option value="{% url "db_file_storage.download_file" %}?name={{ document.docfile }}" id="radbtn{{ document.docfile.name }}" >
 			                    {{ document.docfile.name }}
@@ -375,11 +375,13 @@ body, html {
 		        	<div class="col">
 		        		<br>
 		        	<div class="form-group">
-			        	<div class="form-check form-check-inline">
-                            <h6> Encryption Schemes </h6>
-				            <input id="s1" class="form-check-input" type="radio" name="scheme" value="AES" checked="checked"> <label class="form-check-label" for="s1">AES</label> 
-				            <input id="s2" class="form-check-input" type="radio" name="scheme" value="ARC"> <label class="form-check-label" for="s2">ARC</label> 
-				            <input id="s3" class="form-check-input" type="radio" name="scheme" value="BF"> <label class="form-check-label" for="s3">Blowfish</label>
+                        <h6> Encryption Schemes </h6>
+                        <div class="form-check form-check-inline">
+                            <div>
+                                <input id="s1" class="form-check-input" type="radio" name="scheme" value="AES" checked="checked"> <label class="form-check-label" for="s1">AES</label>
+                                <input id="s2" class="form-check-input" type="radio" name="scheme" value="ARC"> <label class="form-check-label" for="s2">ARC</label>
+                                <input id="s3" class="form-check-input" type="radio" name="scheme" value="BF"> <label class="form-check-label" for="s3">Blowfish</label>
+                            </div>
 				    	</div>
 			    	</div>
 			        <div class="form-group">
@@ -387,11 +389,12 @@ body, html {
 					    <input name="key" type="text" class="form-control" id="key" placeholder="Secret Key(4 to 52 characters)">
 					</div>
 					<div class="form-check form-check-inline">
-			            <input id="view" class="form-check-input" type="radio" name="vd" value="view" checked="checked"> <label class="form-check-label" for="view"><button  style="width:200px";> <i class="fas fa-glasses" > </i>  View </button>  </label> 
+			            <input id="view" class="form-check-input" type="radio" name="vd" value="view" checked="checked"> <label class="form-check-label" for="view"><h3><span class="badge badge-secondary"> <i class="fas fa-glasses" > </i>  View </span> </h3> </label>
 			            <!-- <input id="download" class="form-check-input" type="radio" name="vd" value="download"> <label class="form-check-label" for="download">Download</label>  -->
-                        <input id="download" class="form-check-input" type="radio" name="vd" value="download"> <button  style="width:200px";> <i class="fa fa-download"></i>Download </span></button><br>
-			        </div>
-		           <button type="submit" class="hb" value="Submit"  style="width:200px";><i class= "fas fa-save"> </i> Submit </button>
+                        <input id="download" class="form-check-input" type="radio" name="vd" value="download"> <h3><span class="badge badge-secondary"><i class="fa fa-download"></i>Download </span></h3><br>
+		                </div>
+                        <button type="submit" class="hb " value="Submit"><i class= "fas fa-save"> </i> Submit </button>
+
 		        	</div>
 		        </div>
 	        </form>
@@ -405,8 +408,7 @@ body, html {
         <div id="myModal" class="modal center" width="100%" height="100%" >
           <!-- Modal content -->
           <div  class="modal-content center" width="100%" height="100%" >
-            <span class="close">&times;</span>
-            <div id="mcont"></div>
+            <div id="mcont" class="embed-responsive embed-responsive-16by9"></div>
           </div>
         </div>
 
@@ -436,14 +438,6 @@ body, html {
 
         {% if documents %}
 
-            <script type="text/javascript">
-                var modal = document.getElementById('myModal');
-                var span = document.getElementsByClassName("close")[0];
-                // When the user clicks on <span> (x), close the modal
-                span.onclick = function() {
-                    modal.style.display = "none";
-                }
-            </script>
 
             {% for document in documents %}
                 <script>
@@ -457,14 +451,11 @@ body, html {
         {% endif %}
         <script>
             var modal = document.getElementById('myModal');
-            var span = document.getElementsByClassName("close")[0];
-            // When the user clicks on <span> (x), close the modal
-            span.onclick = function() {
-                modal.style.display = "none";
-            };
             window.onclick = function(event) {
                 if (event.target == modal) {
                     modal.style.display = "none";
+                    var vid = document.getElementById("myvid");
+                    vid.pause();
                 }
             };
         </script>  
