@@ -1,5 +1,6 @@
 from django.conf.urls import url,include
 from django.contrib.auth import views as auth_views
+from django.views.generic import RedirectView
 from . import views
 
 app_name = 'accounts'
@@ -14,5 +15,5 @@ urlpatterns = [
         auth_views.LoginView.as_view(template_name='accounts/login.html'),
         name='password_change_done'
         ),
-    url('', include('django.contrib.auth.urls')),
+    url('', include('django.contrib.auth.urls'))
 ]
