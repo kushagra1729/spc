@@ -495,6 +495,20 @@ def download_file(schm, key, file_name, base_path, status=1):
 		f = OpenBF(key, home + base_path + filename, 'wb')
 		f.write(r.content)
 		f.close()
+	data = api(base_path)
+	md=md5(filename, base_path)
+	files = data['files']
+	old=""
+	for [file, mysum] in files:
+		checker = os.path.basename(file)
+		if filename==checker:
+			old=mysum
+	if(old==""):
+		raise IOError
+	if(old==md):
+		print("Download OK. (Verified md5sum)")
+	else:
+		print("Information lost in downloading")
 
 
 # filename = get_filename_from_cd(r.headers.get('content-disposition'))
