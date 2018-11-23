@@ -1,0 +1,11 @@
+[Unit]
+Description=Periodic sync device for spc application
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /usr/bin/spc_service.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

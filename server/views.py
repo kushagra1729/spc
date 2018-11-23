@@ -90,11 +90,11 @@ import json
 import datetime
 from dateutil import parser
 from django.core.serializers.json import DjangoJSONEncoder
-from datetime import datetime
 import fcntl
 
 @login_required
 def lock(request):
+    print("here")
     found=False
     name=str(request.user)
     while(1):

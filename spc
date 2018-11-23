@@ -11,13 +11,18 @@ import sqlite3
 from Crypto.Cipher import AES, ARC4, Blowfish
 from Crypto import Random
 from struct import pack
+from pathlib import Path
+
 
 client = 0
 # hardcode = "/home/kritin/Pictures/spc/new_int.db"
 logged_in = False  # don't delete this
 
 home = ""
-db_path = "~/.spc.db"
+db_path = str(Path.home()) + "/.spc.db"
+gurl = ""
+# For encryption
+
 
 # For encryption
 
@@ -27,7 +32,7 @@ import time
 def check_lock():
     global client
     # found=False
-    url="http://127.0.0.1:8000/server/lock/"
+    url = gurl + "server/lock/"
     poss=False
     while(not poss):
         print("Waiting for connection...")
@@ -41,7 +46,7 @@ def check_lock():
 
 def release_lock():
     global client
-    url="http://127.0.0.1:8000/server/unlock/"
+    url= gurl+"server/unlock/"
     a=client.get(url)
     return  
 
@@ -179,7 +184,7 @@ def login(usr, pwd, url):
     global client
     global logged_in
     client = requests.session()
-    url = "http://127.0.0.1:8000/accounts/login/"
+    url = gurl+"accounts/login/"
     client.get(url)
     csrftoken = client.cookies['csrftoken']
     login_data = {
@@ -202,10 +207,10 @@ def login(usr, pwd, url):
 # 	print(page)
 
 
-def login_config(usr, pwd, schm, key, url):
+def login_config(usr, pwd, schm, key, gurl):
     global client
     global logged_in
-    url = "http://127.0.0.1:8000/accounts/login/"
+    url = gurl+"accounts/login/"
     client = requests.session()
     client.get(url)
     csrftoken = client.cookies['csrftoken']
@@ -223,7 +228,7 @@ def login_config(usr, pwd, schm, key, url):
         print("Unable to login")
         return False
     else:
-        to_db1 = [(usr, pwd, schm, key, url, "0")]
+        to_db1 = [(usr, pwd, schm, key, gurl, "0")]
         con = sqlite3.connect(db_path)
         cur = con.cursor()
         cur.execute("DROP TABLE IF EXISTS LOGIN_CHECKER")
@@ -288,7 +293,7 @@ def upload_file(schm, key, file_name, folder_name, status=1, farji_folder_name=h
         if (not logged_in):
             (usr, pwd, schm, key, url) = checker_for_login
             login(usr, pwd, url)
-        url = "http://127.0.0.1:8000/server/api/upload_file/"
+        url = gurl+"server/api/upload_file/"
         # client.get(url)
         csrftoken = client.cookies['csrftoken']
         # print(csrftoken)
@@ -331,7 +336,7 @@ def add_folder(base_folder, folder_name):
         if (not logged_in):
             (usr, pwd, schm, key, url) = checker_for_login
             login(usr, pwd, schm, key, url)
-        url = "http://127.0.0.1:8000/server/api/upload_folder/"
+        url = gurl+"server/api/upload_folder/"
         client.get(url)
         csrftoken = client.cookies['csrftoken']
         # print(csrftoken)
@@ -422,14 +427,14 @@ def sign_up_with():
         print("Invalid Encryption Scheme")
         return False
     key = input("Encryption Key : ")
-    url = input("URL[http://127.0.0.1:8000] : ")
-    return login_config(usr, pwd, schm, key, url)
+    gurl = input("URL[http://127.0.0.1:8000/] : ")
+    return login_config(usr, pwd, schm, key, gurl)
 
 
 def sign_up(a, b, c):
     global client
     client = requests.session()
-    url = "http://127.0.0.1:8000/accounts/signup/"
+    url = gurl+"accounts/signup/"
     client.get(url)
     csrftoken = client.cookies['csrftoken']
     login_data = {
@@ -467,7 +472,7 @@ def download_file(schm, key, file_name, base_path, status=1):
     # login(u,p)
     # print(file_name)
 
-    url = "http://127.0.0.1:8000/files/download/?name=" + file_name
+    url = gurl+"files/download/?name=" + file_name
     # print(url)
     r = client.get(url, allow_redirects=True)
     # print(r)
@@ -624,7 +629,7 @@ def remove_folder(base_folder, name):
         remove_folder(base_folder+name+"/",folder)
     csrftoken = client.cookies['csrftoken']
     values = {'base_folder': base_folder, 'name': name, 'csrfmiddlewaretoken': csrftoken}
-    url = "http://127.0.0.1:8000/server/api/remove_folder/"
+    url = gurl+"server/api/remove_folder/"
     client.post(url, data=values, headers=dict(Referer=url))
 
 # print(resp.status_code)
@@ -637,7 +642,7 @@ def remove_file(base_folder, name, status=1):
     # login(u,p)
     csrftoken = client.cookies['csrftoken']
     values = {'base_folder': base_folder, 'name': name, 'csrfmiddlewaretoken': csrftoken}
-    url = "http://127.0.0.1:8000/server/api/remove_file/"
+    url = gurl+"server/api/remove_file/"
     client.post(url, data=values, headers=dict(Referer=url))
 
 
@@ -676,7 +681,7 @@ def syncdown_start(schm, key, folder):
     release_lock()
 
 def api(folder_path):
-    url = "http://127.0.0.1:8000/server/api/files/" + folder_path
+    url = gurl+"server/api/files/" + folder_path
 #    print(client)
     response = client.get(url)
     # print(response.content)
@@ -738,12 +743,15 @@ def status(base_path):
 
 if (__name__ == "__main__"):
     # global client
-    if sys.argv[1] != "observe":
+    if sys.argv[1] != "observe" and sys.argv[1] != "config":
         con = sqlite3.connect(db_path)
         cur = con.cursor()
         usr = cur.execute(''' SELECT * FROM HOME ; ''')
         for row in usr:
             home = row[0]
+        asr = cur.execute('''SELECT * FROM LOGIN_CHECKER''')
+        for row in asr:
+            gurl = row[4]
     if (len(sys.argv) < 2):
         print("Invalid arguments")
     # elif (sys.argv[1] == 'login'):
@@ -833,7 +841,7 @@ if (__name__ == "__main__"):
     elif (sys.argv[1] == 'version'):
         print("Version 1.0")
     elif (sys.argv[1] == 'server'):
-        print("IP : http://127.0.0.0.1:")
+        print("IP : "+ gurl)
         print("Port Number : 8000")
     elif (sys.argv[1] == "help"):
         print("spc version : Gives information about version")
