@@ -86,6 +86,65 @@ def api_upload_file(request):
     form.save()
     return JsonResponse({},safe=False)
 
+import json
+import datetime
+from dateutil import parser
+from django.core.serializers.json import DjangoJSONEncoder
+from datetime import datetime
+import fcntl
+
+@login_required
+def lock(request):
+    found=False
+    name=str(request.user)
+    while(1):
+        try:
+            with open('locking.json','r') as f:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                data = json.load(f)
+                for [user, time] in data:
+                    if(name==user):
+                        cur=datetime.datetime.now()
+                        old=parser.parse(time)
+                        tdelta=cur-old
+                        if(tdelta.seconds<=60):
+                            found=True
+                            fin=data
+                if(not found):
+                    fin=[[a,b] for [a,b] in data if a!=name]
+                    fin.append([name,str(datetime.datetime.now())])
+                else:
+                    fin=data
+                with open('locking.json','w') as p:
+                    json.dump(fin, p)
+                # print("UNLOCKING")
+                fcntl.flock(f, fcntl.LOCK_UN)
+                break
+        except IOError:
+            b=2
+    return JsonResponse({'allowed':(not found)},safe=False)
+
+@login_required
+def unlock(request):
+    name=str(request.user)
+    while(1):
+        # print("TRYING")
+        try:
+            with open('locking.json','r') as f:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                data = json.load(f)
+                fin=[[a,b] for [a,b] in data if a!=name]
+                # json.dump(fin, f)
+                with open('locking.json','w') as p:
+                    json.dump(fin, p)
+                # print("UNLOCKING")
+                fcntl.flock(f, fcntl.LOCK_UN)
+                break
+        except IOError:
+            # print("Error")
+            b=2
+    return JsonResponse({},safe=False)
+
 
 @login_required
 @api_view(['POST'])

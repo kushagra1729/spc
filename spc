@@ -22,6 +22,29 @@ db_path = "~/.spc.db"
 # For encryption
 
 
+import time
+
+def check_lock():
+    global client
+    # found=False
+    url="http://127.0.0.1:8000/server/lock/"
+    poss=False
+    while(not poss):
+        print("Waiting for connection...")
+        response=client.get(url)
+        data=response.json()
+        poss=data['allowed']
+        if(poss):
+            break
+        time.sleep(5)
+    return
+
+def release_lock():
+    global client
+    url="http://127.0.0.1:8000/server/unlock/"
+    a=client.get(url)
+    return  
+
 class OpenBF(object):
     def __init__(self, key, *args, **kwds):
         # do custom stuff here
@@ -619,6 +642,7 @@ def remove_file(base_folder, name, status=1):
 
 
 def syncup_start(schm, key, folder):
+    check_lock()
     global client
     # (u,p)=login_for_reading()
     # login(u,p)
@@ -629,10 +653,11 @@ def syncup_start(schm, key, folder):
     print("Starting sync")
     syncup(schm, key, folder)
     print("Sync complete")
-
+    release_lock()
 
 def syncdown_start(schm, key, folder):
     # print("REACHED")
+    check_lock()
     global client
     # (u,p)=login_for_reading()
     # login(u,p)
@@ -648,7 +673,7 @@ def syncdown_start(schm, key, folder):
         # print("PRESENT")
         syncdown(schm, key, folder)
     print("Sync complete")
-
+    release_lock()
 
 def api(folder_path):
     url = "http://127.0.0.1:8000/server/api/files/" + folder_path
