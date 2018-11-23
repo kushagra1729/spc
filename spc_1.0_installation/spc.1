@@ -1,0 +1,53 @@
+.TH SPC 1
+.SH NAME
+spc \- Software Application helps to upload data on the cloud in a secured fashion. The user has the independence to select the encryption scheme and key for their files.
+.SH SYNOPSIS
+.B spc
+[\fIOPTIONS\fR]
+.B spc [\fIOPTIONS\fR] [\fIFILE\fR]...
+.SH DESCRIPTION
+Complete linux client can be handled using the commands. Sync can be maintained as per the choice of user. Helps in providing a secure environment to the user.
+.SH OPTIONS
+.TP
+.BR version 
+Prints the current version of the spc software
+.TP
+.BR server
+prints the public information of the server i.e. ip of the server, port number of server
+.TP 
+.BR config
+authenticate the user by taking all fields and store them for future usage. Similar to git config which user needs to do only once.
+INPUT FIELDS
+.IR username ", " password ", " "encryption scheme(has to select one from AES ARC and Blowfish)" ", " "encryption key", "url"
+Enter the username, password, encryption scheme, encryption key and url
+.TP 
+.BR en-de list 
+manages the encryption-decryption schemes
+List all the en-de schemes among which the user can choose
+.TP 
+.BR dump <file-path>
+Dumps Encryption Scheme and key data into file
+Format is compatible with input of 'spc update <file-path>'
+.TP
+.BR update <file-path>
+Changes the Encryption Scheme and key of the data on the server
+Scheme and key specified in the file is used
+.TP
+.BR input-update
+Same as 'spc update', except input is taken from <stdin>
+.TP 
+.BR syncup
+Maintains sync between client and user giving priority to client
+Prints the log of all the files exchanged between client and server
+.TP 
+.BR syncdown
+maintains sync between client and user giving priority to server 
+Prints the log of all the files exchanged between client and server
+.TP 
+.BR observe
+Stores the home folder of the linux client
+Updates information regarding root folder
+
+
+
+
