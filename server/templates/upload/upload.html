@@ -204,58 +204,77 @@
     </style>
 <body class="bg">
 
-<script>
-function openNav() {
-    document.getElementById("mySidenav").style.width = "250px";
-}
+	<script>
+		function openNav() {
+		    document.getElementById("mySidenav").style.width = "250px";
+		}
 
-function closeNav() {
-    document.getElementById("mySidenav").style.width = "0";
-}
-</script>
+		function closeNav() {
+		    document.getElementById("mySidenav").style.width = "0";
+		}
+	</script>
 
-<span style="font-size:40px;cursor:pointer" onclick="openNav()">&#9776; </span>
-<center>
-    <h1 > <font color="DimGrey"> Secure Personal Cloud </font> </h1>
-    <h1 > <font color="DimGrey"> Welcome {{ request.user }} </font> </h1>
-</center>
+	<span style="font-size:40px;cursor:pointer" onclick="openNav()">&#9776; </span>
+	<center>
+	    <h1 > <font color="DimGrey"> Secure Personal Cloud </font> </h1>
+	    <h1 > <font color="DimGrey"> Welcome {{ request.user }} </font> </h1>
+	</center>
 
-<div id="mySidenav" class="sidenav">
-    <a href="#" > Secure Personal Cloud </a>
-  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-  <a href="/server/upload">Home</a>
-  <a href="/accounts/logout">Logout</a>
-  <a href="/accounts/change-password">Change Password</a>
-</div>
-<button onclick="location.href='/accounts/logout'" class="hbutton" style="width:200px"; > Logout
- </button>
+	<div id="mySidenav" class="sidenav">
+	    <a href="#" > Secure Personal Cloud </a>
+	    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+	    <a href="/server/upload">Home</a>
+	    <a href="/accounts/logout">Logout</a>
+	    <a href="/accounts/change-password">Change Password</a>
+	</div>
+	<button onclick="location.href='/accounts/logout'" class="hbutton" style="width:200px"; >Logout
+	</button>
 
-<div class="container">
-            {% if documents %}
-                <form id="files" name="files" onSubmit="return decrypt()">
+	<div class="container">
+	    {% if documents %}
+	        <form id="files" name="files" onSubmit="return decrypt()">
+	        	<div class="row">
+	        		<div class="col">
+		        	<div class="form-group">
+		        		<label for="filename">Files</label>
+		        		<select multiple class="form-control" style="height:200px" id="fileurl" name="fileurl">
+			            {% for document in documents %}
+			                <option value="{% url "db_file_storage.download_file" %}?name={{ document.docfile }}" id="radbtn{{ document.docfile.name }}">
+			                    {{ document.docfile.name }}
+			                </option>
+			            {% endfor %}
+			        	</select>
+			        </div>
+			        </div>
 
-                        {% for document in documents %}
-                            <input  type="radio" name="fileurl" value="{% url "db_file_storage.download_file" %}?name={{ document.docfile }}" checked="checked">
-                            <i id="radbtn{{ document.docfile.name }}">
-                                {{ document.docfile.name }} </i><br>
-                        {% endfor %}
+		        
+		        
+		        	<div class="col">
+		        		<br>
+		        	<div class="form-group">
+			        	<div class="form-check form-check-inline">
+				            <input id="s1" class="form-check-input" type="radio" name="scheme" value="AES" checked="checked"> <label class="form-check-label" for="s1">AES</label> 
+				            <input id="s2" class="form-check-input" type="radio" name="scheme" value="ARC"> <label class="form-check-label" for="s2">ARC</label> 
+				            <input id="s3" class="form-check-input" type="radio" name="scheme" value="BF"> <label class="form-check-label" for="s3">Blowfish</label>
+				    	</div>
+			    	</div>
+			        <div class="form-group">
+					    <label for="key">Encryption Key</label>
+					    <input name="key" type="text" class="form-control" id="key" placeholder="Secret Key(4 to 52 characters)">
+					</div>
+					<div class="form-check form-check-inline">
+			            <input id="view" class="form-check-input" type="radio" name="vd" value="view" checked="checked"> <label class="form-check-label" for="view">View</label> 
+			            <input id="download" class="form-check-input" type="radio" name="vd" value="download"> <label class="form-check-label" for="download">Download</label> 
+			        </div>
+		            <button type="submit" class="class="btn btn-primary" value="Submit"  style="width:200px";> Submit </button>
+		        	</div>
+		        </div>
+	        </form>
+	    {% else %}
+	        <p>No documents.</p>
 
-
-                        <input type="radio" name="scheme" value="AES" checked="checked"> AES <br>
-                        <input type="radio" name="scheme" value="ARC"> ARC4 <br>
-                        <input type="radio" name="scheme" value="BF"> Blowfish <br>
-                        Key: <input type="text" name="key"><br>
-                        <input type="radio" name="vd" value="view" checked="checked"> View <br>
-                        <input type="radio" name="vd" value="download"> Download <br>
-                        <button type="submit" class="hb" value="Submit"  style="width:200px";> Submit </button>
-
-
-                </form>
-            {% else %}
-                <p>No documents.</p>
-
-            {% endif %}
-        </div>
+	    {% endif %}
+	</div>
 
         <!-- The Modal -->
         <div id="myModal" class="modal center" width="100%" height="100%" >

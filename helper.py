@@ -1,11 +1,4 @@
 import os
-cwd = os.getcwd()
-print(cwd)
-# dir = os.path.dirname(__file__)
-# path = input()
-# if os.path.isabs(path):
-#     print ("input path is absolute")
-# else:
-#     path = os.path.join(dir, path)
-#     print(path)
-#     print ("absolute path is %s")
+newpath = os.getcwd() + "/this_is_new_folder"
+os.mkdir(newpath)
+

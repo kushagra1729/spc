@@ -13,10 +13,11 @@ from Crypto import Random
 from struct import pack
 
 client = 0
-#hardcode = "/home/kritin/Pictures/spc/new_int.db"
+# hardcode = "/home/kritin/Pictures/spc/new_int.db"
 logged_in = False  # don't delete this
 
 home = ""
+db_path = "~/.spc.db"
 
 # For encryption
 
@@ -200,9 +201,7 @@ def login_config(usr, pwd, schm, key, url):
         return False
     else:
         to_db1 = [(usr, pwd, schm, key, url, "0")]
-        print("HERE")
-
-        con = sqlite3.connect("new_int.db")
+        con = sqlite3.connect(db_path)
         cur = con.cursor()
         cur.execute("DROP TABLE IF EXISTS LOGIN_CHECKER")
         cur.execute(
@@ -230,7 +229,7 @@ def login_for_reading():
     # url = cur.execute('''SELECT url FROM LOGIN_CHECKER WHERE value = "0";''')
     # a = usr.fetchall()
     # c = pwd.fetchall()
-    con = sqlite3.connect("new_int.db")
+    con = sqlite3.connect(db_path)
     cur = con.cursor()
     usr = cur.execute('''SELECT * FROM LOGIN_CHECKER''')
     for row in usr:
@@ -247,9 +246,7 @@ def login_for_reading():
 
 def md5(file_name, folder_name, farji_folder_name=home):
     hash_md5 = hashlib.md5()
-    print(home)
-    print(farji_folder_name)
-    farji_folder_name =home
+    farji_folder_name = home
     with open(farji_folder_name + folder_name + file_name, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
@@ -272,7 +269,6 @@ def upload_file(schm, key, file_name, folder_name, status=1, farji_folder_name=h
         # client.get(url)
         csrftoken = client.cookies['csrftoken']
         # print(csrftoken)
-        print(farji_folder_name, "vgvuhkjl")
         md5sum = md5(file_name, folder_name, farji_folder_name)
         if schm == "AES":
             if (folder_name == ""):
@@ -294,8 +290,10 @@ def upload_file(schm, key, file_name, folder_name, status=1, farji_folder_name=h
                   'csrfmiddlewaretoken': csrftoken}
         # print("DONE")
         resp = client.post(url, files=files, data=values, headers=dict(Referer=url))
-    # resp.raise_for_status()
-    # print(resp.status_code)
+
+
+# resp.raise_for_status()
+# print(resp.status_code)
 
 
 # else :
@@ -401,7 +399,7 @@ def sign_up_with():
         print("Invalid Encryption Scheme")
         return False
     key = input("Encryption Key : ")
-    url = input("URL[https://127.0.0.1:8000] : ")
+    url = input("URL[http://127.0.0.1:8000] : ")
     return login_config(usr, pwd, schm, key, url)
 
 
@@ -488,7 +486,6 @@ def download_folder(schm, key, base_path):
 
 
 def syncup(schm, key, base_path):
-
     if (base_path is ""):
         without_slash = base_path
     elif (base_path[-1] == "/"):
@@ -593,11 +590,19 @@ def remove_folder(base_folder, name):
     global client
     # (u,p)=login_for_reading()
     # login(u,p)
+    data=api(base_folder+name+"/")
+    print(data)
+    folders=data['folders']
+    files=data['files']
+    for (file,md5sum) in files:
+        fname = os.path.basename(file)
+        remove_file(base_folder+name+"/",fname)
+    for folder in folders:
+        remove_folder(base_folder+name+"/",folder)
     csrftoken = client.cookies['csrftoken']
     values = {'base_folder': base_folder, 'name': name, 'csrfmiddlewaretoken': csrftoken}
     url = "http://127.0.0.1:8000/server/api/remove_folder/"
     client.post(url, data=values, headers=dict(Referer=url))
-
 
 # print(resp.status_code)
 
@@ -647,20 +652,22 @@ def syncdown_start(schm, key, folder):
 
 def api(folder_path):
     url = "http://127.0.0.1:8000/server/api/files/" + folder_path
-    print(client)
+#    print(client)
     response = client.get(url)
     # print(response.content)
     data = response.json()
     return data
 
+
 def printclientfolder(base_path):
-    print("<<" + base_path)
-    clientfiles = [f for f in os.listdir(home + base_path) if isfile(join(home + base_path, f))]
-    clientfolders = [f for f in os.listdir(home + base_path) if isdir(join(home + base_path, f))]
+    print("<<" + base_path[0:-1])
+    clientfiles = [f for f in os.listdir(home + base_path[0:-1]) if isfile(join(home + base_path[0:-1], f))]
+    clientfolders = [f for f in os.listdir(home + base_path[0:-1]) if isdir(join(home + base_path[0:-1], f))]
     for name in clientfolders:
-        printclientfolder(base_path + name)
+        printclientfolder(base_path + name + "/")
     for name in clientfiles:
         print("<<" + base_path + name)
+
 
 def status(base_path):
     global client
@@ -681,10 +688,13 @@ def status(base_path):
         filenames = []
         for folder in folders:
             status(base_path + folder + "/")
-        clientfolders = [f for f in os.listdir(home + base_path) if isdir(join(home + base_path, f))]
+        if base_path == "":
+            clientfolders = [f for f in os.listdir(home + base_path) if isdir(join(home + base_path, f))]
+        else:
+            clientfolders = [f for f in os.listdir(home + base_path[0:-1]) if isdir(join(home + base_path[0:-1], f))]
         for name in clientfolders:
             if (name not in folders):
-                printclientfolder(base_path + name)
+                printclientfolder(base_path + name + "/")
         for (file, md5sum) in files:
             name = os.path.basename(file)
             filenames.append(name)
@@ -692,20 +702,23 @@ def status(base_path):
                 print(">>" + base_path + name)
             elif (md5sum != md5(name, base_path)):
                 print("||" + base_path + name)
-        clientfiles = [f for f in os.listdir(home + base_path) if isfile(join(home + base_path, f))]
+        if base_path == "":
+            clientfiles = [f for f in os.listdir(home + base_path) if isfile(join(home + base_path, f))]
+        else:
+            clientfiles = [f for f in os.listdir(home + base_path[0:-1]) if isfile(join(home + base_path[0:-1], f))]
         for name in clientfiles:
             if (name not in filenames):
                 print("<<" + base_path + name)
-        
+
 
 if (__name__ == "__main__"):
     # global client
-    con = sqlite3.connect("home.db")
-    cur = con.cursor()
-    usr = cur.execute(''' SELECT * FROM HOME ; ''' )
-    for row in usr:
-        home = row[0]
-    print(home)
+    if sys.argv[1] != "observe":
+        con = sqlite3.connect(db_path)
+        cur = con.cursor()
+        usr = cur.execute(''' SELECT * FROM HOME ; ''')
+        for row in usr:
+            home = row[0]
     if (len(sys.argv) < 2):
         print("Invalid arguments")
     # elif (sys.argv[1] == 'login'):
@@ -792,12 +805,12 @@ if (__name__ == "__main__"):
         # if(with_slash[-1] is not "/"):
         # 	with_slash=with_slash+"/"
         syncup_start(schm, key, "")
-    elif(sys.argv[1]=='version'):
+    elif (sys.argv[1] == 'version'):
         print("Version 1.0")
-    elif(sys.argv[1] == 'server'):
+    elif (sys.argv[1] == 'server'):
         print("IP : http://127.0.0.0.1:")
         print("Port Number : 8000")
-    elif(sys.argv[1] == "help"):
+    elif (sys.argv[1] == "help"):
         print("spc version : Gives information about version")
         print("spc server : prints IP and socket on the terminal")
         print("spc config : User needs to do setup at the beginning and every time they change their password")
@@ -806,7 +819,8 @@ if (__name__ == "__main__"):
         print("spc syncup : Gives major priority to linux client and sync data between server and client")
         print("spc syncdown : Gives major priority to server and sync data between server and client")
         print("spc observe : Stores home/root directory at the beginning")
-    elif(sys.argv[1] == "dump"):
+        print("spc status : Prints the difference between directory structure of server and client")
+    elif (sys.argv[1] == "dump"):
         (usr, pwd, schm, key, url) = login_for_reading()
         e = login(usr, pwd, url)
         if (not e):
@@ -814,49 +828,60 @@ if (__name__ == "__main__"):
             exit()
         crs = open(sys.argv[2], "r")
         a = []
-        for columns in ( raw.strip().split() for raw in crs ):
-            a.insert(0,columns[0])
+        for columns in (raw.strip().split() for raw in crs):
+            a.insert(0, columns[0])
         new_key = a[0]
         new_scheme = a[1]
-        con = sqlite3.connect("new_int.db")
+        con = sqlite3.connect(db_path)
         cur = con.cursor()
-        usr = cur.execute('''SELECT * FROM LOGIN_CHECKER''' )
+        usr = cur.execute('''SELECT * FROM LOGIN_CHECKER''')
         for row in usr:
             old_scheme = row[2]
             old_key = row[3]
-        syncdown_start(old_scheme, old_key, "")
-        print(new_scheme)
-        print(new_key)
-        cur.execute('''UPDATE LOGIN_CHECKER set encryption_scheme = ?, encryption_key = ? WHERE value ="0"''' , (new_scheme, new_key))
-        con.commit()
-        syncup_start(new_scheme,new_key,"")
+        cwd = os.getcwd() + "/the_folder_madse/"
+        os.mkdir(cwd)
+        home = cwd
+        syncup_start(old_scheme, old_key, "")
+        os.rmdir(cwd)
+    # print(new_scheme)
+    # print(new_key)
+    # cur.execute('''UPDATE LOGIN_CHECKER set encryption_scheme = ?, encryption_key = ? WHERE value ="0"''' , (new_scheme, new_key))
+    # con.commit()
+    # con1 = sqlite3.connect("home.db")
+    # cur1 = con1.cursor()
+    # usr = cur1.execute(''' SELECT * FROM HOME ; ''' )
+    # for row in usr:
+    # 	home = row[0]
+    # syncup_start(new_scheme,new_key,"")
 
-    elif(sys.argv[1] == "observe"):
-        con = sqlite3.connect("home.db")
+    elif (sys.argv[1] == "observe"):
+        con = sqlite3.connect(db_path)
         cur = con.cursor()
         cur.execute("DROP TABLE IF EXISTS HOME")
         cur.execute('''CREATE TABLE HOME (url,value);''')
         if (os.path.isabs(sys.argv[2])):
-            to_db1 = [ (sys.argv[2] , "0")]
+            to_db1 = [(sys.argv[2], "0")]
             home = sys.argv[2]
-        else :
+        else:
             cwd = os.getcwd()
             if (sys.argv[2][1] == "/"):
                 c = cwd + sys.argv[2]
                 home = c
-                to_db1 = [ (c,"0") ]
-            else :
+                to_db1 = [(c, "0")]
+            else:
                 c = cwd + "/" + sys.argv[2]
-                to_db1 = [ (c,"0") ]
+                to_db1 = [(c, "0")]
                 home = c
-        print(to_db1)
-        print(to_db1[0])
-        cur.executemany('''INSERT INTO HOME (url,value) VALUES (?,?);''',to_db1)
+        if home[-1] != "/":
+            home = home + "/"
+#        print(to_db1)
+#        print(to_db1[0])
+        cur.executemany('''INSERT INTO HOME (url,value) VALUES (?,?);''', to_db1)
         con.commit()
         con.close()
-        print(home)
+#        print(home)
 
-    elif(sys.argv[1] == "en-de" and sys.argv[2] == "list"):
+    elif (sys.argv[1] == "en-de" and sys.argv[2] == "list"):
         print("AES , ARC4 , Blowfish")
     elif (sys.argv[1] == 'syncdown'):  # change its name, same as Rohan's
         # global client
@@ -875,6 +900,7 @@ if (__name__ == "__main__"):
         if (not a):
             print("Sorry you are not currently logged in")
             exit()
+
         status("")
     else:
         # upload_file("s18.txt","there/")
@@ -887,5 +913,3 @@ if (__name__ == "__main__"):
 
 # print(c)
 # print(os.path.dirname(a))
-
-
