@@ -9,6 +9,10 @@
         <title>Minimal Django File Upload Example</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.5.0/css/all.css' integrity='sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU' crossorigin='anonymous'>
+        <script type="text/javascript" src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
 
         <script type="text/javascript" src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.js"></script>
@@ -200,6 +204,127 @@
             background-repeat: no-repeat;
             background-size: cover;
         }
+.cancelbtn {
+    width: auto;
+    padding: 10px 18px;
+    background-color: #f44336;
+}
+
+/* Center the image and position the close button */
+.imgcontainer {
+    text-align: center;
+    margin: 24px 0 12px 0;
+    position: relative;
+}
+
+img.avatar {
+    width: 40%;
+    border-radius: 50%;
+}
+
+.container {
+    padding: 40px;
+
+}
+
+span.psw {
+    float: right;
+    padding-top: 16px;
+}
+
+/* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    padding-top: 60px;
+}
+
+/* Modal Content/Box */
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto 15% auto; /* 5% from the top, 15% from the bottom and centered */
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button (x) */
+.close {
+    position: absolute;
+    right: 25px;
+    top: 0;
+    color: #000;
+    font-size: 35px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: red;
+    cursor: pointer;
+}
+
+/* Add Zoom Animation */
+.animate {
+    -webkit-animation: animatezoom 0.6s;
+    animation: animatezoom 0.6s
+}
+
+@-webkit-keyframes animatezoom {
+    from {-webkit-transform: scale(0)} 
+    to {-webkit-transform: scale(1)}
+}
+    
+@keyframes animatezoom {
+    from {transform: scale(0)} 
+    to {transform: scale(1)}
+}
+
+/* Change styles for span and cancel button on extra small screens */
+@media screen and (max-width: 300px) {
+    span.psw {
+       display: block;
+       float: none;
+    }
+    .cancelbtn {
+       width: 100%;
+    }
+}
+body, html {
+    height: 100%;
+    margin: 0;
+}
+
+.bg {
+    /* The image used */
+    background-image: url("{% static 'images/as.jpg' %}");
+
+    /* Full height */
+    height: 100%; 
+
+    /* Center and scale the image nicely */
+    background-position: center;
+    background-repeat: repeat;
+    background-size: cover;
+}
+.helper{
+    height: 400px;
+  line-height: 600px;
+  text-align: center;
+}
+/*div {
+ height: 400px;
+  line-height: 600px;
+  text-align: center;
+}*/
+
 
     </style>
 <body class="bg">
@@ -227,8 +352,6 @@
 	    <a href="/accounts/logout">Logout</a>
 	    <a href="/accounts/change-password">Change Password</a>
 	</div>
-	<button onclick="location.href='/accounts/logout'" class="hbutton" style="width:200px"; >Logout
-	</button>
 
 	<div class="container">
 	    {% if documents %}
@@ -239,7 +362,7 @@
 		        		<label for="filename">Files</label>
 		        		<select multiple class="form-control" style="height:200px" id="fileurl" name="fileurl">
 			            {% for document in documents %}
-			                <option value="{% url "db_file_storage.download_file" %}?name={{ document.docfile }}" id="radbtn{{ document.docfile.name }}">
+			                <option value="{% url "db_file_storage.download_file" %}?name={{ document.docfile }}" id="radbtn{{ document.docfile.name }}" >
 			                    {{ document.docfile.name }}
 			                </option>
 			            {% endfor %}
@@ -253,6 +376,7 @@
 		        		<br>
 		        	<div class="form-group">
 			        	<div class="form-check form-check-inline">
+                            <h6> Encryption Schemes </h6>
 				            <input id="s1" class="form-check-input" type="radio" name="scheme" value="AES" checked="checked"> <label class="form-check-label" for="s1">AES</label> 
 				            <input id="s2" class="form-check-input" type="radio" name="scheme" value="ARC"> <label class="form-check-label" for="s2">ARC</label> 
 				            <input id="s3" class="form-check-input" type="radio" name="scheme" value="BF"> <label class="form-check-label" for="s3">Blowfish</label>
@@ -263,10 +387,11 @@
 					    <input name="key" type="text" class="form-control" id="key" placeholder="Secret Key(4 to 52 characters)">
 					</div>
 					<div class="form-check form-check-inline">
-			            <input id="view" class="form-check-input" type="radio" name="vd" value="view" checked="checked"> <label class="form-check-label" for="view">View</label> 
-			            <input id="download" class="form-check-input" type="radio" name="vd" value="download"> <label class="form-check-label" for="download">Download</label> 
+			            <input id="view" class="form-check-input" type="radio" name="vd" value="view" checked="checked"> <label class="form-check-label" for="view"><button  style="width:200px";> <i class="fas fa-glasses" > </i>  View </button>  </label> 
+			            <!-- <input id="download" class="form-check-input" type="radio" name="vd" value="download"> <label class="form-check-label" for="download">Download</label>  -->
+                        <input id="download" class="form-check-input" type="radio" name="vd" value="download"> <button  style="width:200px";> <i class="fa fa-download"></i>Download </span></button><br>
 			        </div>
-		            <button type="submit" class="class="btn btn-primary" value="Submit"  style="width:200px";> Submit </button>
+		           <button type="submit" class="hb" value="Submit"  style="width:200px";><i class= "fas fa-save"> </i> Submit </button>
 		        	</div>
 		        </div>
 	        </form>

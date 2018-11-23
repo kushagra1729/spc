@@ -107,7 +107,7 @@ def lock(request):
                         cur=datetime.datetime.now()
                         old=parser.parse(time)
                         tdelta=cur-old
-                        if(tdelta.seconds<=60):
+                        if(tdelta.seconds<=30):
                             found=True
                             fin=data
                 if(not found):
